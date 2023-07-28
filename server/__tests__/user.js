@@ -1,7 +1,7 @@
 //test
 const app = require("../user/app");
 const request = require("supertest");
-const { sequelize } = require("../models");
+const { sequelize } = require("../user/models");
 const { queryInterface } = sequelize;
 
 const user1 = {
