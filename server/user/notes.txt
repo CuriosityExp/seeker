@@ -1,0 +1,20 @@
+touch app.js .gitignore .env .env.example notes.txt
+mkdir controllers routes middlewares helpers data
+
+npm i express pg cors jsonwebtoken bcryptjs sequelize dotenv
+npm i -D sequelize-cli
+
+npx sequelize init
+npx sequelize db:create
+
+
+npx sequelize model:create --name User --attributes username:string,email:string,password:string
+npx sequelize model:create --name User --attributes fullName:string,aboutMe:string,sayName:string,birthDate:string,gender:string,phoneNumber:string,domisili:string,UserId:integer
+
+npx sequelize db:migrate
+
+npx sequelize seed:create --name users
+npx sequelize seed:create --name dataPerson
+
+npx sequelize db:seed:all
+
