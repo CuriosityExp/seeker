@@ -1,6 +1,7 @@
 const { checkPassword } = require("../helpers/bcrypt");
 const { SignToken } = require("../helpers/jwt");
 const { User, DataPerson } = require("../models");
+const axios = require('axios')
 
 class UserController {
   static async register(req, res) {
@@ -43,6 +44,33 @@ class UserController {
       } else {
         return res.status(400).json({ message: `username/email is required` });
       }
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ message: `Internal server error` });
+    }
+  }
+
+  
+  static async loginLinkedIn(req, res) {
+    try {
+
+      const {data} = await axios ({
+        method: 'GET',
+        url: `https://api.linkedin.com/v2/userinfo`,
+        headers: {
+        accept: 'application/json',
+        Authorization: `Bearer $<Key>`
+        }
+      })
+
+      const [username, email] = await User.findOrCreate({
+        where: {email},
+        defaults: {username, email, password: "XXXXXXXXX"},
+        hooks: false
+      })
+
+      console.log({email, username} + "LinkedIn login berhasil")
+      res.status(created ? 201 : 200 ).json({access_token: SignToken({ id : username.id }) })
     } catch (err) {
       console.log(err);
       res.status(500).json({ message: `Internal server error` });

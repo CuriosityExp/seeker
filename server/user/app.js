@@ -7,7 +7,7 @@ const UserController = require("./controllers/userController");
 const cors = require("cors");
 
 const app = express();
-const port = process.env.PORT;
+const port = process.env.PORT || 3001;
 
 app.use(cors());
 
@@ -16,6 +16,7 @@ app.use(express.json());
 
 app.post("/register", UserController.register);
 app.post("/login", UserController.login);
+app.post("/loginL", UserController.loginLinkedIn);
 
 app.use(authentication);
 
