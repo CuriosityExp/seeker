@@ -26,6 +26,8 @@ class Job {
     companyLocation,
     salary,
     workExperience,
+    jobDesc,
+    minimumSkills
   }) {
     try {
         const jobCollection =  this.jobCollection()
@@ -37,6 +39,8 @@ class Job {
           companyLocation,
           salary,
           workExperience,
+          jobDesc,
+          minimumSkills,
         });
         return await jobCollection.findOne({
           _id: new ObjectId(newJob.insertedId),

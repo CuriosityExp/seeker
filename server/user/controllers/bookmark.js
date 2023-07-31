@@ -1,10 +1,12 @@
 const Bookmark = require("../mongo-models/bookmark");
 const Job = require("../mongo-models/job");
+const Scrap = require("../mongo-models/scrap");
 
 class BookmarkController {
   static async createBookmark(req, res, next) {
     try {
-      const { UserId } = req.user;
+      const { id: UserId } = req.user;
+      // console.log(UserId, "ini User Id")
       const {
         url,
         logo,
@@ -14,6 +16,17 @@ class BookmarkController {
         salary,
         workExperience,
       } = req.body
+      let detail;
+      if (url.includes("kalibrr")) {
+        detail = await Scrap.kalibrrDetail(url)
+      }
+      if (url.includes("karir")) {
+        detail = await Scrap.karirDetail(url)
+      }
+      if (url.includes("glints")) {
+        detail = await Scrap.glintsDetail(url)
+      }
+      console.log(detail)
       const jobDetail = await Job.create({
         url,
         logo,
@@ -22,6 +35,8 @@ class BookmarkController {
         companyLocation,
         salary,
         workExperience,
+        jobDesc: detail.jobDesc,
+        minimumSkills: detail.minimumSkills,
       });
       const jobId = jobDetail._id
       if (!UserId) {
@@ -113,7 +128,7 @@ class BookmarkController {
     try {
       // nanti ganti pakai ini setelah ada auth
       // const {UserId} = req.user
-      const { UserId } = req.user;
+      const { id: UserId } = req.user;
       const bookmarks = await Bookmark.findAll(UserId);
       res.status(200).json(bookmarks);
     } catch (error) {
