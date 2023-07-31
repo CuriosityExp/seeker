@@ -1,6 +1,6 @@
 const puppeteer = require("puppeteer");
 
-class ScrapController {
+class Scrap {
   static glintsUrl(url) {
     return new Promise(async (resolve, reject) => {
       try {
@@ -46,21 +46,32 @@ class ScrapController {
     });
   }
 
-  static kalibrrUrl(query) {
+  static async kalibrrUrl(query) {
     return new Promise(async (resolve, reject) => {
       try {
         const url = `https://www.kalibrr.com/id-ID/job-board/te/${query}/si/monthly/co/Indonesia/1`;
-        const browser = await puppeteer.launch();
+        const browser = await puppeteer.launch({
+          headless: true,
+          userDataDir: "./data",
+        });
         const page = await browser.newPage();
         await page.goto(url);
         let urls = await page.evaluate(() => {
           let results = [];
           let items = document.querySelectorAll("div.css-1b4vug6");
+          console.log(items, "ini items")
           items.forEach((item) => {
-            results.push(
-              "https://www.kalibrr.com" +
-                item.children[1].children[0].children[0].getAttribute("href")
-            );
+            const jobDesc = item.children[3].innerText.split("\n");
+            results.push({
+              url:
+                "https://www.kalibrr.com" +
+                item.children[1].children[0].children[0].getAttribute("href"),
+              logo: item.children[0].children[0].children[0].src,
+              jobTitle: item.children[1].innerText,
+              companyName: jobDesc[0],
+              companyLocation: jobDesc[1],
+              salary: jobDesc[3],
+            });
           });
           return results;
         });
@@ -152,4 +163,4 @@ class ScrapController {
   }
 }
 
-module.exports = ScrapController;
+module.exports = Scrap;

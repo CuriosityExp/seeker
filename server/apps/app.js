@@ -2,12 +2,10 @@ const express = require("express");
 const app = express();
 const port = process.env.PORT || 3002;
 const cors = require('cors')
-const router = require("./routes")
+const router = require("./routes");
+const errorHandler = require("./middlewares/errorHandler");
+const { run } = require("./config/config");
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
 
 app.use(cors())
 app.use(express.json())
