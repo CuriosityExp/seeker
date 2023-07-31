@@ -4,6 +4,8 @@ const express = require("express");
 const errorHandler = require("./middlewares/errorHandler");
 const cors = require("cors");
 const router = require("./routes");
+const { run } = require("./config/mongo.js");
+
 
 const app = express();
 const port = process.env.PORT;
@@ -17,6 +19,10 @@ app.use(router);
 
 app.use(errorHandler);
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+run().then(() => {
+  app.listen(port, () => {
+    console.log(
+      `SeekerDB app listening on port ${port} -- ${new Date().toLocaleDateString()}`
+    );
+  });
 });

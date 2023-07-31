@@ -1,5 +1,7 @@
 const express = require("express");
 const UserController = require("../controllers/userController");
+const BookmarkController = require("../controllers/bookmark");
+const JobController = require("../controllers/job");
 const authentication = require("../middlewares/authentication");
 const router = express.Router();
 
@@ -29,5 +31,11 @@ router.post("/work-experience", UserController.createWorkExperience);
 router.get("/work-experience/:id", UserController.getWorkExperienceById);
 router.put("/work-experience/:id", UserController.updateWorkExperience);
 router.delete("/work-experience/:id", UserController.deleteWorkExperience);
+
+router.post("/fetchjobs", JobController.fetchJobs);
+router.get("/bookmarks", BookmarkController.readBookmark);
+router.post("/bookmarks", BookmarkController.createBookmark);
+router.delete("/bookmarks", BookmarkController.deleteBookmark);
+router.put("/bookmarks", BookmarkController.updateBookmark);
 
 module.exports = router;

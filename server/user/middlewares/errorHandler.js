@@ -1,5 +1,6 @@
 const errorHandler = (err, req, res, next) => {
   console.log(err);
+  if (err.name === "CustomError")res.status(err.status).json({ message: err.message });
   if (err.name === "SequelizeValidationError") return res.status(400).json({ message: err.errors[0].message });
   if (err.name === "SequelizeUniqueConstraintError") return res.status(400).json({ message: err.errors[0].message });
   if (err.name === "InvalidUser") return res.status(400).json({ message: `Email or Password is not valid` });
