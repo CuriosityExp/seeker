@@ -32,6 +32,8 @@ router.get("/work-experience/:id", UserController.getWorkExperienceById);
 router.put("/work-experience/:id", UserController.updateWorkExperience);
 router.delete("/work-experience/:id", UserController.deleteWorkExperience);
 
+router.post("/create-cv/:id", UserController.CreateCV);
+
 router.post("/fetchjobs", JobController.fetchJobs);
 router.get("/bookmarks", BookmarkController.readBookmark);
 router.post("/bookmarks", BookmarkController.createBookmark);

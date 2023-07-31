@@ -451,6 +451,51 @@ class UserController {
       next(err);
     }
   }
+
+  static async CreateCV(req, res, next) {
+    try {
+
+      const dataExperience = await WorkExperience.findOne({
+        where: { id: req.params.id },
+      });
+
+      if (!dataExperience) throw { name: "NotFound" };
+
+      const dataEducation = await Education.findOne({
+        where: { id: req.params.id },
+      });
+
+      if (!dataEducation) throw { name: "NotFound" };
+
+      const dataProfile = await Profile.findOne({
+        where: { id: req.params.id },
+      });
+
+      if (!dataProfile) throw { name: "NotFound" };
+
+      const dataUser = await User.findOne({
+        where: { id: req.params.id },
+      });
+
+      if (!dataUser) throw { name: "NotFound" };
+
+      const prompt = `Generate cv markdown with this data; name:${dataProfile.fullName}, about me:${dataProfile.aboutMe},
+       gender:${dataProfile.gender}, phone number:${dataProfile.phoneNumber}, email:${dataUser.email}, experiences:${dataExperience.company},
+       positions:${dataExperience.position}, major:${dataEducation.Major}, education:${dataEducation.graduatedEducation}`;
+      const response = await openai.createCompletion({
+        model: "text-davinci-003",
+        prompt,
+        max_tokens: 1000,
+      });
+
+      const dataCV = response;
+      return dataCV;
+
+      res.status(200).json({  });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = UserController;
