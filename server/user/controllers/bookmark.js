@@ -17,14 +17,21 @@ class BookmarkController {
         workExperience,
       } = req.body
       let detail;
+      console.log(url)
       if (url.includes("kalibrr")) {
+        console.log("kalibrr")
         detail = await Scrap.kalibrrDetail(url)
       }
       if (url.includes("karir")) {
+        console.log("karir")
         detail = await Scrap.karirDetail(url)
       }
       if (url.includes("glints")) {
+        console.log("glints")
         detail = await Scrap.glintsDetail(url)
+      }
+      if (!detail) {
+        throw {name: "CustomError", status: 404, message: "Job Detail not found"}
       }
       console.log(detail)
       const jobDetail = await Job.create({

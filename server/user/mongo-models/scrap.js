@@ -49,12 +49,8 @@ class Scrap {
         await page.waitForSelector("main");
         let detail = await page.evaluate(() => {
           return {
-            minimumSkills: document
-              .getElementsByClassName("public-DraftStyleDefault-ul")[0]
-              .innerText.split("\n"),
-            jobDesc: document
-              .getElementsByClassName("public-DraftStyleDefault-ul")[1]
-              .innerText.split("\n"),
+            minimumSkills: document.getElementsByClassName("kGxrri")[0].innerText.split('\n'),
+            jobDesc: document.getElementsByClassName("public-DraftEditor-content")[0].innerText.split("\n-\t"),
           };
         });
         browser.close();
@@ -176,10 +172,10 @@ class Scrap {
         const page = await browser.newPage();
         await page.goto(url);
         let urls = await page.evaluate(() => {
-          const data = document.getElementsByClassName(
-            "b-opportunity-show__aside"
-          )[0].innerText;
-          return { data };
+          return {
+            minimumSkills: document.getElementsByClassName("b-matte__content")[0].innerText.split('\n'),
+            jobDesc: document.getElementsByClassName("b-matte__content")[1].innerText.split('\n'),
+          }
         });
         browser.close();
         return resolve(urls);
