@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      User.hasOne(models.DataPerson);
+      User.hasOne(models.Profile);
     }
   }
   User.init(
@@ -29,22 +29,23 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         unique: { msg: `Email must be unique` },
         validate: {
-          notEmpty: { msg: `email is required` },
-          notNull: { msg: `email is required` },
+          notEmpty: { msg: `Email is required` },
+          notNull: { msg: `Email is required` },
           isEmail: {
             args: true,
-            msg: `Format is wrong`
-          }
+            msg: `Format is wrong`,
+          },
         },
       },
       password: {
         type: DataTypes.STRING,
         allowNull: false,
         validate: {
-          notEmpty: { msg: `password is required` },
-          notNull: { msg: `password is required` },
+          notEmpty: { msg: `Password is required` },
+          notNull: { msg: `Password is required` },
         },
       },
+      token: DataTypes.INTEGER,
     },
     {
       sequelize,
@@ -53,6 +54,7 @@ module.exports = (sequelize, DataTypes) => {
   );
   User.beforeCreate("register", (user) => {
     user.password = hashPassword(user.password);
+    user.token = 5;
   });
   return User;
 };

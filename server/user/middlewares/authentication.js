@@ -1,5 +1,5 @@
 const { VerifyToken } = require("../helpers/jwt");
-const { User } = require("../models");
+const { User, DataPerson } = require("../models");
 
 const authentication = async (req, res, next) => {
   try {
@@ -10,7 +10,6 @@ const authentication = async (req, res, next) => {
     const user = await User.findOne({
       where: { id: decoded.id },
     });
-
     if (!user) throw { name: "InvalidToken" };
 
     req.user = user;

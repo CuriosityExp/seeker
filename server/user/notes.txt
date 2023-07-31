@@ -1,7 +1,7 @@
 touch app.js .gitignore .env .env.example notes.txt
 mkdir controllers routes middlewares helpers data
 
-npm i express pg cors jsonwebtoken bcryptjs sequelize dotenv
+npm i express pg cors jsonwebtoken bcryptjs sequelize dotenv midtrans-client
 npm i -D sequelize-cli
 
 npx sequelize init
@@ -9,12 +9,18 @@ npx sequelize db:create
 
 
 npx sequelize model:create --name User --attributes username:string,email:string,password:string
-npx sequelize model:create --name User --attributes fullName:string,aboutMe:string,sayName:string,birthDate:string,gender:string,phoneNumber:string,domisili:string,UserId:integer
+npx sequelize model:create --name Profile --attributes fullName:string,aboutMe:string,sayName:string,birthDate:string,gender:string,phoneNumber:string,domisili:string,UserId:integer
+npx sequelize model:create --name Education --attributes educationalLevel:string,College:string,Major:string,startEducation:string,graduatedEducation:string,ProfileId:integer
+npx sequelize model:create --name WorkExperience --attributes company:string,position:string,type:string,startWork:string,stopWork:string,ProfileId:integer
 
+npx sequelize db:migrate:undo:all
 npx sequelize db:migrate
 
 npx sequelize seed:create --name users
 npx sequelize seed:create --name dataPerson
 
 npx sequelize db:seed:all
+
+
+MIDTRANS_CLIENT_KEY="SB-Mid-client-iTL80yb77QXBazq4"
 
