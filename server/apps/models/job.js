@@ -38,7 +38,7 @@ class Job {
           salary,
           workExperience,
         });
-        return await userCollection.findOne({
+        return await jobCollection.findOne({
           _id: new ObjectId(newJob.insertedId),
         });
     } catch (error) {

@@ -46,9 +46,10 @@ class ScrapController {
     });
   }
 
-  static kalibrrUrl(url) {
+  static kalibrrUrl(query) {
     return new Promise(async (resolve, reject) => {
       try {
+        const url = `https://www.kalibrr.com/id-ID/job-board/te/${query}/si/monthly/co/Indonesia/1`;
         const browser = await puppeteer.launch();
         const page = await browser.newPage();
         await page.goto(url);

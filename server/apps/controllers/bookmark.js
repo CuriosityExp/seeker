@@ -4,7 +4,17 @@ const Job = require("../models/job");
 class BookmarkController {
   static async createBookmark(req, res, next) {
     try {
-      const { userId, jobId } = req.body;
+      const { userId } = req.body;
+      const jobDetail = await Job.create({
+        url,
+        logo,
+        jobTitle,
+        companyName,
+        companyLocation,
+        salary,
+        workExperience,
+      });
+      const jobId = jobDetail._id
       if (!userId) {
         throw { name: "CustomError", status: 400, message: "UserId required" };
       }
