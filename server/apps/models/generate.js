@@ -1,3 +1,10 @@
+const { Configuration, OpenAIApi } = require("openai");
+
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
+
 class Generator {
   static async generateTodo(profile) {
     try {
@@ -14,21 +21,19 @@ class Generator {
         max_tokens: 1000,
       });
       const completion = response.data.choices[0].text;
-      const todos = JSON.parse(completion)
-      return todos
+      const todos = JSON.parse(completion);
+      return todos;
     } catch (error) {
       next(error);
     }
   }
 
-  static async generateParams(profile){
+  static async generateParams(profile) {
     try {
-        if (!profile) {
-          throw new Error("Uh oh, no profile was provided");
-        }
-    } catch (error) {
-        
-    }
+      if (!profile) {
+        throw new Error("Uh oh, no profile was provided");
+      }
+    } catch (error) {}
   }
 }
 
