@@ -13,6 +13,7 @@ let db;
 
 async function run() {
   try {
+    // console.log(uri)
     db = await client.db("seekerDB");
   } catch (error) {
     console.log(error);

@@ -4,7 +4,16 @@ const Job = require("../models/job");
 class BookmarkController {
   static async createBookmark(req, res, next) {
     try {
-      const { userId } = req.body;
+      const { UserId } = req.body;
+      const {
+        url,
+        logo,
+        jobTitle,
+        companyName,
+        companyLocation,
+        salary,
+        workExperience,
+      } = req.body
       const jobDetail = await Job.create({
         url,
         logo,
@@ -15,7 +24,7 @@ class BookmarkController {
         workExperience,
       });
       const jobId = jobDetail._id
-      if (!userId) {
+      if (!UserId) {
         throw { name: "CustomError", status: 400, message: "UserId required" };
       }
       if (!jobId) {
@@ -26,7 +35,7 @@ class BookmarkController {
         throw { name: "CustomError", status: 404, message: "Job not found" };
       }
       const bookmark = await Bookmark.create({
-        userId,
+        UserId,
         jobId,
         customTitle: job.jobTitle,
       });
@@ -103,9 +112,9 @@ class BookmarkController {
   static async readBookmark(req, res, next) {
     try {
       // nanti ganti pakai ini setelah ada auth
-      // const {userId} = req.user
-      const { userId } = req.body;
-      const bookmarks = await Bookmark.findAll(userId);
+      // const {UserId} = req.user
+      const { UserId } = req.body;
+      const bookmarks = await Bookmark.findAll(UserId);
       res.status(200).json(bookmarks);
     } catch (error) {
       next(error);

@@ -6,11 +6,25 @@ class Bookmark {
     return getDb().collection("bookmarks");
   }
 
-  static async findAll(userId) {
+  static async findAll(UserId) {
     const bookmarkCollection = this.bookmarkCollection();
-    return await bookmarkCollection.find({
-        userId: new ObjectId(userId)
-    }).toArray();
+    return await bookmarkCollection
+      .aggregate([
+        {
+          $match: {
+            UserId,
+          },
+        },
+        {
+          $lookup: {
+            from: "jobs",
+            localField: "jobId",
+            foreignField: "_id",
+            as: "Job",
+          },
+        },
+      ])
+      .toArray();
   }
 
   static async findByPk(bookmarkId) {
@@ -20,11 +34,11 @@ class Bookmark {
     });
   }
 
-  static async create({ userId, jobId, customTitle }) {
+  static async create({ UserId, jobId, customTitle }) {
     try {
       const bookmarkCollection = this.bookmarkCollection();
       const newBookmark = await bookmarkCollection.insertOne({
-        userId,
+        UserId,
         jobId,
         customTitle,
       });
@@ -55,14 +69,14 @@ class Bookmark {
     }
   }
 
-  static async destroy(bookmarkId){
+  static async destroy(bookmarkId) {
     try {
       const bookmarkCollection = this.bookmarkCollection();
       return await bookmarkCollection.deleteOne({
         _id: new ObjectId(bookmarkId),
       });
     } catch (error) {
-        throw error
+      throw error;
     }
   }
 }
