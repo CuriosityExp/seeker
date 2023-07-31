@@ -3,6 +3,12 @@ const { SignToken } = require("../helpers/jwt");
 const { User, Profile, Education, WorkExperience } = require("../models");
 const midtransClient = require("midtrans-client");
 const nodemailer = require("nodemailer");
+const remarkHtml = require('remark-html')
+const { Configuration, OpenAIApi } = require("openai");
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY_USER,
+});
+const openai = new OpenAIApi(configuration);
 
 class UserController {
   static async register(req, res) {
@@ -84,7 +90,7 @@ class UserController {
 
       const user = await User.findOne({
         where: {
-          id: req.user.id,
+          id: req.user.id
         },
       });
       if (!user) throw { name: "NotFound" };
@@ -456,25 +462,25 @@ class UserController {
     try {
 
       const dataExperience = await WorkExperience.findOne({
-        where: { id: req.params.id },
+        where: { id: req.user.id },
       });
 
       if (!dataExperience) throw { name: "NotFound" };
 
       const dataEducation = await Education.findOne({
-        where: { id: req.params.id },
+        where: { id: req.user.id },
       });
 
       if (!dataEducation) throw { name: "NotFound" };
 
       const dataProfile = await Profile.findOne({
-        where: { id: req.params.id },
+        where: { id: req.user.id },
       });
 
       if (!dataProfile) throw { name: "NotFound" };
 
       const dataUser = await User.findOne({
-        where: { id: req.params.id },
+        where: { id: req.user.id },
       });
 
       if (!dataUser) throw { name: "NotFound" };
@@ -489,9 +495,19 @@ class UserController {
       });
 
       const dataCV = response;
-      return dataCV;
 
-      res.status(200).json({  });
+      const file = await unified()
+      .use(remarkHtml)
+      .process(await read(dataCV))
+
+      var options = { format: 'Letter' };
+
+      pdf.create(file, options).toFile('./CVGenerated.pdf', function(err, res) {
+        if (err) return console.log(err);
+        console.log(res)
+      });
+
+      res.status(200).json({ msg:"pdf has been generated!?" });
     } catch (err) {
       next(err);
     }
