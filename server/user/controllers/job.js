@@ -1,5 +1,5 @@
-const Job = require("../models/job");
-const Scrap = require("../models/scrap");
+const Job = require("../mongo-models/job");
+const Scrap = require("../mongo-models/scrap");
 
 class JobController {
   static async fetchJobs(req, res, next) {

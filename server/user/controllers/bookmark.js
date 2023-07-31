@@ -1,10 +1,10 @@
-const Bookmark = require("../models/bookmark");
-const Job = require("../models/job");
+const Bookmark = require("../mongo-models/bookmark");
+const Job = require("../mongo-models/job");
 
 class BookmarkController {
   static async createBookmark(req, res, next) {
     try {
-      const { UserId } = req.body;
+      const { UserId } = req.user;
       const {
         url,
         logo,
