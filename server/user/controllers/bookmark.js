@@ -113,7 +113,7 @@ class BookmarkController {
     try {
       // nanti ganti pakai ini setelah ada auth
       // const {UserId} = req.user
-      const { UserId } = req.body;
+      const { UserId } = req.user;
       const bookmarks = await Bookmark.findAll(UserId);
       res.status(200).json(bookmarks);
     } catch (error) {

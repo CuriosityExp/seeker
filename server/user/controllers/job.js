@@ -6,7 +6,6 @@ class JobController {
     try {
       const { query } = req.body;
       const jobs = await Scrap.kalibrrUrl(query)
-      console.log(jobs, "ini di controller")
       res.status(200).json(jobs)
     } catch (error) {
       next(error);
