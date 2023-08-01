@@ -3,12 +3,12 @@ const { SignToken } = require("../helpers/jwt");
 const { User, Profile, Education, WorkExperience } = require("../models");
 const midtransClient = require("midtrans-client");
 const nodemailer = require("nodemailer");
-let MarkdownIt = require('markdown-it');
-const pdf = require('html-pdf')
+let MarkdownIt = require("markdown-it");
+const pdf = require("html-pdf");
 let md = new MarkdownIt();
 const { Configuration, OpenAIApi } = require("openai");
 const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY_USER,
+  apiKey: "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",
 });
 const openai = new OpenAIApi(configuration);
 
@@ -33,13 +33,15 @@ class UserController {
     try {
       const { username, email, password } = req.body;
 
-      if (!password) return res.status(400).json({ message: `password is required` });
+      if (!password)
+        return res.status(400).json({ message: `password is required` });
 
       if (username) {
         const user = await User.findOne({ where: { username } });
         if (!user) return res.status(400).json({ message: `Invalid User` });
         const isPassword = checkPassword(password, user.password);
-        if (!isPassword) return res.status(400).json({ message: `Invalid User` });
+        if (!isPassword)
+          return res.status(400).json({ message: `Invalid User` });
 
         res.status(200).json({ access_token: SignToken({ id: user.id }) });
       } else if (email) {
@@ -47,7 +49,8 @@ class UserController {
         if (!user) return res.status(400).json({ message: `Invalid User` });
 
         const isPassword = checkPassword(password, user.password);
-        if (!isPassword) return res.status(400).json({ message: `Invalid User` });
+        if (!isPassword)
+          return res.status(400).json({ message: `Invalid User` });
 
         res.status(200).json({ access_token: SignToken({ id: user.id }) });
       } else {
@@ -92,7 +95,7 @@ class UserController {
 
       const user = await User.findOne({
         where: {
-          id: req.user.id
+          id: req.user.id,
         },
       });
       if (!user) throw { name: "NotFound" };
@@ -229,7 +232,16 @@ class UserController {
   static async updateProfile(req, res, next) {
     try {
       const { id } = req.params;
-      const { fullName, aboutMe, sayName, birthDate, gender, phoneNumber, domisili, photoUrl } = req.body;
+      const {
+        fullName,
+        aboutMe,
+        sayName,
+        birthDate,
+        gender,
+        phoneNumber,
+        domisili,
+        photoUrl,
+      } = req.body;
 
       const findData = await Profile.findByPk(+id);
       if (!findData) throw { name: "NotFound" };
@@ -276,7 +288,13 @@ class UserController {
   }
 
   static async createEducation(req, res, next) {
-    const { educationalLevel, College, Major, startEducation, graduatedEducation } = req.body;
+    const {
+      educationalLevel,
+      College,
+      Major,
+      startEducation,
+      graduatedEducation,
+    } = req.body;
 
     try {
       const profile = await Profile.findOne({
@@ -317,7 +335,13 @@ class UserController {
   static async updateEducation(req, res, next) {
     try {
       const { id } = req.params;
-      const { educationalLevel, College, Major, startEducation, graduatedEducation } = req.body;
+      const {
+        educationalLevel,
+        College,
+        Major,
+        startEducation,
+        graduatedEducation,
+      } = req.body;
 
       const findData = await Education.findByPk(+id);
       if (!findData) throw { name: "NotFound" };
@@ -462,7 +486,6 @@ class UserController {
 
   static async CreateCV(req, res, next) {
     try {
-
       const dataProfile = await Profile.findOne({
         where: { UserId: req.user.id },
       });
@@ -475,41 +498,87 @@ class UserController {
 
       if (!dataUser) throw { name: "NotFound" };
 
-      const dataExperience = await WorkExperience.findOne({
+      const dataExperience = await WorkExperience.findAll({
         where: { ProfileId: dataProfile.id },
       });
 
       if (!dataExperience) throw { name: "NotFound" };
 
-      const dataEducation = await Education.findOne({
+      const dataEducation = await Education.findAll({
         where: { ProfileId: dataProfile.id },
       });
 
       if (!dataEducation) throw { name: "NotFound" };
 
-      const prompt = `Generate cv markdown with this data; name:${dataProfile.fullName}, about me:${dataProfile.aboutMe},
-       gender:${dataProfile.gender}, phone number:${dataProfile.phoneNumber}, email:${dataUser.email}, experiences:${dataExperience.company},
-       positions:${dataExperience.position}, major:${dataEducation.Major}, education:${dataEducation.graduatedEducation}`;
+      // olah arraynya
+
+      const pastWork = dataExperience.map((el) => {
+        return `my work experiences, i was working at ${el.company} from years ${el.startWork} untill ${el.stopWork}, my role was ${el.position} and i was a ${el.type} worker`;
+      });
+
+      const eduBackground = dataEducation.map((el) => {
+        return `my education background, i was graduate from ${el.College} from years ${el.startEducation} untill ${el.graduatedEducation}, my major was ${el.Major} and my degree is ${el.educationalLevel}`;
+      });
+
+      // console.log(eduBackground);
+
+      // console.log(pastWork);
+
+      const prompt = `Please create an ATS-friendly CV in markdown template with this data. 
+      My name: name - ${dataProfile.fullName},
+      Gender - ${dataProfile.gender},
+      Phone number - ${dataProfile.phoneNumber},
+      Email - ${dataUser.email},
+      About me - ${dataProfile.aboutMe}.
+      
+      My work experiences:
+      - I have worked at ${pastWork.toString()}.
+      
+      Education background:
+      - I graduated from ${eduBackground.toString()}.
+      
+      Please add any additional information that you think is needed.
+      
+      Work Experience Description:
+      - Add a description of my work experience here.
+      
+      Major Description:
+      - Add a description about my major here.
+      
+      Skills:
+      - Add SKILL section based on the "About Me" information.
+      
+      Summary:
+      - Add a summary section based on the "About Me" information.
+      
+      Please provide the CV format so I can easily copy it. My data type was an array of objects, please make sure you read it one by one.`;
+
       const response = await openai.createCompletion({
         model: "text-davinci-003",
         prompt,
-        max_tokens: 1000
+        max_tokens: 1000,
       });
 
       const dataCV = response.data.choices[0].text;
 
-      let file = md.render(dataCV)
-      
-      console.log(file, '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,,')
-      let options = { format: 'Letter' };
+      let file = md.render(dataCV);
 
-      pdf.create(file, options).toFile('./CVGenerated.pdf', function(err, res) {
-        if (err) return console.log(err);
-        console.log(res)
-      });
+      console.log(
+        file,
+        "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,,"
+      );
+      let options = { format: "Letter" };
 
-      res.status(200).json({ msg:"pdf has been generated!?" });
+      pdf
+        .create(file, options)
+        .toFile("./CVGenerated.pdf", function (err, res) {
+          if (err) return console.log(err);
+          console.log(res);
+        });
+
+      res.status(200).json({ msg: "pdf has been generated!?" });
     } catch (err) {
+      console.log(err, "ini error pdf");
       next(err);
     }
   }
