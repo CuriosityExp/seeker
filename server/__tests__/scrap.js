@@ -7,10 +7,7 @@ const Scrap = require("../user/mongo-models/scrap");
 const Job = require("../user/mongo-models/job");
 const Bookmark = require("../user/mongo-models/bookmark");
 const { queryInterface } = sequelize;
-const { run } = require("../user/config/mongo");
-
-let connection;
-let db;
+const { run, client } = require("../user/config/mongo");
 
 let validToken;
 const tester = {
@@ -86,35 +83,33 @@ const mockKarirJob = {
   salary: "IDR 3.500.000 - 4.100.000",
 };
 
-beforeAll((done) => {
-  User.create(tester)
-    .then((res) => {
-      //   console.log(res);
-      validToken = SignToken({ id: res.id });
-      done();
-    })
-    .catch((e) => {
-      done(e);
-    });
+beforeAll(async (done) => {
+  try {
+    run("testDB");
+    const res = await User.create(tester);
+    validToken = SignToken({ id: res.id });
+    done();
+  } catch (error) {
+    done(error);
+  }
 });
 
 beforeEach(() => {
   jest.restoreAllMocks();
 });
-
-afterAll((done) => {
-  queryInterface
-    .bulkDelete("Users", null, {
+afterAll(async (done) => {
+  try {
+    await client.close();
+    queryInterface.bulkDelete("Users", null, {
       restartIdentity: true,
       truncate: true,
       cascade: true,
-    })
-    .then(() => {
-      done();
-    })
-    .catch((err) => {
-      done(err);
     });
+    done()
+  } catch (error) {
+    done(error)
+  }
+
 });
 
 describe("/fetchjobs manual with query and 3 job portal", () => {
@@ -435,12 +430,10 @@ describe("TEST ENDPOINT /bookmarks UPDATE", () => {
       jobId: "Test Job Id",
       customTitle: "Test Title lama",
     });
-    Bookmark.update = jest
-      .fn()
-      .mockResolvedValue({
-        bookmarkId: Bookmark.findByPk._id,
-        customTitle: "Test Custom Baru",
-      });
+    Bookmark.update = jest.fn().mockResolvedValue({
+      bookmarkId: Bookmark.findByPk._id,
+      customTitle: "Test Custom Baru",
+    });
     request(app)
       .put("/bookmarks")
       .send({ bookmarkId: "Test Bookmark Id", customTitle: "Test Custom Baru" })
@@ -610,33 +603,37 @@ describe("TEST ENDPOINT /bookmarks DELETE", () => {
   });
 });
 
-describe("TEST ENDPOINT /bookmarks GET", ()=> {
-    test("200 Success GET Bookmarks by UserId", (done)=>{
-        Bookmark.findAll = jest.fn().mockResolvedValue([{_id: "Bookmark Id", jobId: "Job Id", UserId: "User id"}])
-        request(app)
-          .get("/bookmarks")
-          .set("access_token", validToken)
-          .then((res) => {
-            const {body,status} = res
-            expect(status).toBe(200)
-            expect(body).toEqual(expect.any(Array))
-            done();
-          })
-          .catch((err) => {
-            console.log(err);
-          });
-    })
-    test("401 Success GET Bookmarks by UserId", (done) => {
-      request(app)
-        .get("/bookmarks")
-        .then((res) => {
-          const { body, status } = res;
-          expect(status).toBe(401);
-          expect(body).toHaveProperty("message","Invalid Token");
-          done();
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    });
-})
+describe("TEST ENDPOINT /bookmarks GET", () => {
+  test("200 Success GET Bookmarks by UserId", (done) => {
+    Bookmark.findAll = jest
+      .fn()
+      .mockResolvedValue([
+        { _id: "Bookmark Id", jobId: "Job Id", UserId: "User id" },
+      ]);
+    request(app)
+      .get("/bookmarks")
+      .set("access_token", validToken)
+      .then((res) => {
+        const { body, status } = res;
+        expect(status).toBe(200);
+        expect(body).toEqual(expect.any(Array));
+        done();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  });
+  test("401 Success GET Bookmarks by UserId", (done) => {
+    request(app)
+      .get("/bookmarks")
+      .then((res) => {
+        const { body, status } = res;
+        expect(status).toBe(401);
+        expect(body).toHaveProperty("message", "Invalid Token");
+        done();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  });
+});
