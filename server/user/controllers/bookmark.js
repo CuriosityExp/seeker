@@ -82,7 +82,7 @@ class BookmarkController {
           message: "Custom Bookmark Title required",
         };
       }
-      const bookmark = await Bookmark.findByPk(bookmarkId);
+      const [bookmark] = await Bookmark.findByPk(bookmarkId);
       if (!bookmark) {
         throw {
           name: "CustomError",
@@ -90,7 +90,9 @@ class BookmarkController {
           message: "Bookmark not found",
         };
       }
+      // console.log(bookmark)
       const newBookmark = await Bookmark.update({ bookmarkId, customTitle });
+      // console.log(newBookmark)
       if (!newBookmark) {
         throw {
           name: "CustomError",
