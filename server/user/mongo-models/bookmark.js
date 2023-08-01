@@ -41,6 +41,7 @@ class Bookmark {
         UserId,
         jobId,
         customTitle,
+        isPost: false,
       });
       return bookmarkCollection.findOne({
         _id: new ObjectId(newBookmark.insertedId),
