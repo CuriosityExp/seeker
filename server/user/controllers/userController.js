@@ -501,9 +501,10 @@ class UserController {
       let file = md.render(dataCV)
       
       console.log(file, '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,,')
-      let options = { format: 'Letter' };
+      let options = { format: 'A4' };
+      let html = `<div style="font-family:sans-serif; margin:10mm"> ${file} </div>`
 
-      pdf.create(file, options).toFile('./CVGenerated.pdf', function(err, res) {
+      pdf.create(html, options).toFile('./CVGenerated.pdf', function(err, res) {
         if (err) return console.log(err);
         console.log(res)
       });
