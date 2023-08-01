@@ -6,10 +6,10 @@ class Job {
     return getDb().collection("jobs");
   }
 
-  static async findAll() {
-    const jobCollection = this.jobCollection();
-    return await jobCollection.find().toArray();
-  }
+  // static async findAll() {
+  //   const jobCollection = this.jobCollection();
+  //   return await jobCollection.find().toArray();
+  // }
 
   static async findByPk(jobId) {
     const jobCollection = this.jobCollection();
