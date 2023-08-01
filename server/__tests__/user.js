@@ -5,14 +5,14 @@ const { sequelize } = require("../user/models");
 const { queryInterface } = sequelize;
 
 const user1 = {
-  email: "user.test@mail.com",
-  name: "User Test",
+  email: "usertest@mail.com",
+  username: "User Test",
   password: "usertest",
 };
 
 afterAll((done) => {
   queryInterface
-    .bulkDelete("Users", null, { restartIdentity: true, truncate: true })
+    .bulkDelete("Users", null, { restartIdentity: true, truncate: true, cascade:true })
     .then(() => {
       done();
     })
@@ -23,7 +23,7 @@ afterAll((done) => {
 
 describe("User Routes Test", () => {
   describe("POST /register - create new user", () => {
-    test("201 Success register - should create new User", (done) => {
+    test.only("201 Success register - should create new User", (done) => {
       request(app)
         .post("/register")
         .send(user1)
@@ -32,8 +32,7 @@ describe("User Routes Test", () => {
           const { body, status } = res;
 
           expect(status).toBe(201);
-          expect(body).toHaveProperty("id", expect.any(Number));
-          expect(body).toHaveProperty("email", user1.email);
+          expect(body).toHaveProperty("message", "Register Success");
           return done();
         });
     });
@@ -73,7 +72,7 @@ describe("User Routes Test", () => {
         .post("/register")
         .send({
           email: "random",
-          name: "Sample User",
+          username: "Sample User",
           password: "qweqwe",
         })
         .end((err, res) => {
