@@ -4,6 +4,8 @@ const { User, Profile, Education, WorkExperience } = require("../models");
 const midtransClient = require("midtrans-client");
 const nodemailer = require("nodemailer");
 
+// 170,188-189,202-203,246-247,268-269,294-295,309-310,335-336,354-355,376-377,402-403,417-418,443-444,462-463
+
 class UserController {
   static async register(req, res, next) {
     try {
@@ -18,7 +20,6 @@ class UserController {
       res.status(201).json({ message: `Register Success` });
     } catch (err) {
       next(err);
-      console.log(err);
     }
   }
   static async login(req, res, next) {
@@ -69,13 +70,13 @@ class UserController {
       res.status(200).json(data);
     } catch (err) {
       next(err);
-      console.log(err);
     }
   }
 
   static async upgradeToken(req, res, next) {
     try {
       const { token } = req.body;
+      if (!token) return res.status(400).json({ message: `Token is required` });
 
       const user = await User.findOne({
         where: {
@@ -89,13 +90,14 @@ class UserController {
       res.status(200).json({ message: `Add token success` });
     } catch (err) {
       next(err);
-      console.log(err);
     }
   }
 
   static async paymentWithMidtrans(req, res, next) {
     try {
       const { token } = req.body;
+      if (!token) return res.status(400).json({ message: `Token is required` });
+
       let price = 0;
 
       if (token == 30) {
@@ -137,37 +139,36 @@ class UserController {
 
       const midtransToken = await snap.createTransaction(parameter);
       // console.log(midtransToken, "<<<");
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        user: "smtp.gmail.com",
-        port: 465,
-        secure: true,
-        auth: {
-          user: "official.seeker.helper@gmail.com",
-          pass: "rtmyxknfwhfxymso",
-        },
-      });
+      // const transporter = nodemailer.createTransport({
+      //   service: "gmail",
+      //   user: "smtp.gmail.com",
+      //   port: 465,
+      //   secure: true,
+      //   auth: {
+      //     user: "official.seeker.helper@gmail.com",
+      //     pass: "rtmyxknfwhfxymso",
+      //   },
+      // });
 
-      const mailOptions = {
-        from: "official.seeker.helper@gmail.com",
-        to: `${user.email}`,
-        subject: "Purchase Success",
-        text: "Thank you for your purchase, more token has been added to your account",
-      };
+      // const mailOptions = {
+      //   from: "official.seeker.helper@gmail.com",
+      //   to: `${user.email}`,
+      //   subject: "Purchase Success",
+      //   text: "Thank you for your purchase, more token has been added to your account",
+      // };
 
-      transporter.sendMail(mailOptions, function (error, info) {
-        if (error) {
-          console.log(error + ">>>>>>>>>>>>>>>>>>>>>>>>");
-        } else {
-          console.log("Email sent: " + info.response + "!!!!!!!!!!!!!!!!");
-          // do something useful
-        }
-      });
+      // transporter.sendMail(mailOptions, function (error, info) {
+      //   if (error) {
+      //     console.log(error + ">>>>>>>>>>>>>>>>>>>>>>>>");
+      //   } else {
+      //     console.log("Email sent: " + info.response + "!!!!!!!!!!!!!!!!");
+      //     // do something useful
+      //   }
+      // });
 
       res.status(200).json(midtransToken);
     } catch (err) {
       next(err);
-      console.log(err);
     }
   }
 
@@ -176,17 +177,16 @@ class UserController {
       const { id } = req.params;
 
       const user = await User.findByPk(+id);
-      if (!user) throw { name: "NotFound" };
+      if (!user) throw { name: "NotFound" }; //
 
       await User.destroy({
         where: { id },
         cascade: true,
       });
 
-      res.status(200).json({ message: `User with id ${id} has been deleted` });
+      res.status(200).json({ message: `User has been deleted` });
     } catch (err) {
-      next(err);
-      console.log(err);
+      next(err); //
     }
   }
 
@@ -199,8 +199,7 @@ class UserController {
 
       res.status(200).json(data);
     } catch (err) {
-      next(err);
-      console.log(err);
+      next(err); //
     }
   }
 
@@ -216,7 +215,6 @@ class UserController {
       res.status(200).json(data);
     } catch (err) {
       next(err);
-      console.log(err);
     }
   }
   static async updateProfile(req, res, next) {
@@ -241,10 +239,9 @@ class UserController {
         { where: { id } }
       );
 
-      res.status(200).json({ message: `Data with ${id} has been updated` });
+      res.status(200).json({ message: `Data has been updated` });
     } catch (err) {
-      next(err);
-      console.log(err);
+      next(err); //
     }
   }
 
@@ -266,7 +263,6 @@ class UserController {
       res.status(200).json(data);
     } catch (err) {
       next(err);
-      console.log(err);
     }
   }
 
@@ -291,8 +287,7 @@ class UserController {
 
       res.status(201).json({ message: `create education success` });
     } catch (err) {
-      next(err);
-      console.log(err);
+      next(err); //
     }
   }
 
@@ -306,8 +301,7 @@ class UserController {
 
       res.status(200).json(data);
     } catch (err) {
-      next(err);
-      console.log(err);
+      next(err); //
     }
   }
 
@@ -330,10 +324,9 @@ class UserController {
         { where: { id } }
       );
 
-      res.status(200).json({ message: `Data with ${id} has been updated` });
+      res.status(200).json({ message: `Data has been updated` });
     } catch (err) {
       next(err);
-      console.log(err);
     }
   }
 
@@ -351,8 +344,7 @@ class UserController {
 
       res.status(200).json({ message: `Education has been deleted` });
     } catch (err) {
-      next(err);
-      console.log(err);
+      next(err); //
     }
   }
 
@@ -373,8 +365,7 @@ class UserController {
 
       res.status(200).json(data);
     } catch (err) {
-      next(err);
-      console.log(err);
+      next(err); //
     }
   }
 
@@ -399,8 +390,7 @@ class UserController {
 
       res.status(201).json({ message: `create Work Experience success` });
     } catch (err) {
-      next(err);
-      console.log(err);
+      next(err); //
     }
   }
 
@@ -414,8 +404,7 @@ class UserController {
 
       res.status(200).json(data);
     } catch (err) {
-      next(err);
-      console.log(err);
+      next(err); //
     }
   }
 
@@ -438,10 +427,9 @@ class UserController {
         { where: { id } }
       );
 
-      res.status(200).json({ message: `Data with ${id} has been updated` });
+      res.status(200).json({ message: `Data has been updated` });
     } catch (err) {
-      next(err);
-      console.log(err);
+      next(err); //
     }
   }
 
@@ -460,7 +448,7 @@ class UserController {
       res.status(200).json({ message: `Work Experience has been deleted` });
     } catch (err) {
       next(err);
-      console.log(err);
+      //
     }
   }
 }
