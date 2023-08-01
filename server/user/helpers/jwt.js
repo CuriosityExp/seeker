@@ -3,6 +3,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 // var token = jwt.sign({ name: 'Dony Canra' }, JWT_SECRET);
 
 const SignToken = (payload) => {
+  console.log(JWT_SECRET, "<<");
   return jwt.sign(payload, JWT_SECRET);
 };
 

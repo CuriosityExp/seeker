@@ -5,7 +5,7 @@ const midtransClient = require("midtrans-client");
 const nodemailer = require("nodemailer");
 
 class UserController {
-  static async register(req, res) {
+  static async register(req, res, next) {
     try {
       const { username, email, password } = req.body;
 
@@ -17,11 +17,11 @@ class UserController {
 
       res.status(201).json({ message: `Register Success` });
     } catch (err) {
+      next(err);
       console.log(err);
-      res.status(500).json({ message: `Internal server error` });
     }
   }
-  static async login(req, res) {
+  static async login(req, res, next) {
     try {
       const { username, email, password } = req.body;
 
@@ -31,7 +31,7 @@ class UserController {
         const user = await User.findOne({ where: { username } });
         if (!user) return res.status(400).json({ message: `Invalid User` });
         const isPassword = checkPassword(password, user.password);
-        if (!isPassword) return res.status(400).json({ message: `Invalid User` });
+        if (!isPassword) return res.status(400).json({ message: `Invalid Password` });
 
         res.status(200).json({ access_token: SignToken({ id: user.id }) });
       } else if (email) {
@@ -39,35 +39,29 @@ class UserController {
         if (!user) return res.status(400).json({ message: `Invalid User` });
 
         const isPassword = checkPassword(password, user.password);
-        if (!isPassword) return res.status(400).json({ message: `Invalid User` });
+        if (!isPassword) return res.status(400).json({ message: `Invalid Password` });
 
         res.status(200).json({ access_token: SignToken({ id: user.id }) });
       } else {
         return res.status(400).json({ message: `username/email is required` });
       }
     } catch (err) {
-      console.log(err);
-      res.status(500).json({ message: `Internal server error` });
+      console.log(err, "<<<login");
+      next(err);
     }
   }
 
   //Authentication
 
-  //Users
-  static async allUser(req, res, next) {
-    try {
-      const data = await User.findAll();
-
-      res.status(200).json(data);
-    } catch (err) {
-      next(err);
-    }
-  }
-
+  //Users`
   static async findUser(req, res, next) {
     try {
       const data = await User.findOne({
-        where: { id: req.params.id },
+        where: { id: req.user.id },
+        include: {
+          model: Profile,
+          include: [Education, WorkExperience],
+        },
       });
 
       if (!data) throw { name: "NotFound" };
@@ -75,6 +69,7 @@ class UserController {
       res.status(200).json(data);
     } catch (err) {
       next(err);
+      console.log(err);
     }
   }
 
@@ -94,6 +89,7 @@ class UserController {
       res.status(200).json({ message: `Add token success` });
     } catch (err) {
       next(err);
+      console.log(err);
     }
   }
 
@@ -171,6 +167,7 @@ class UserController {
       res.status(200).json(midtransToken);
     } catch (err) {
       next(err);
+      console.log(err);
     }
   }
 
@@ -189,6 +186,7 @@ class UserController {
       res.status(200).json({ message: `User with id ${id} has been deleted` });
     } catch (err) {
       next(err);
+      console.log(err);
     }
   }
 
@@ -202,6 +200,7 @@ class UserController {
       res.status(200).json(data);
     } catch (err) {
       next(err);
+      console.log(err);
     }
   }
 
@@ -209,6 +208,7 @@ class UserController {
     try {
       const data = await Profile.findOne({
         where: { id: req.params.id },
+        include: [Education, WorkExperience],
       });
 
       if (!data) throw { name: "NotFound" };
@@ -216,6 +216,7 @@ class UserController {
       res.status(200).json(data);
     } catch (err) {
       next(err);
+      console.log(err);
     }
   }
   static async updateProfile(req, res, next) {
@@ -243,6 +244,7 @@ class UserController {
       res.status(200).json({ message: `Data with ${id} has been updated` });
     } catch (err) {
       next(err);
+      console.log(err);
     }
   }
 
@@ -264,6 +266,7 @@ class UserController {
       res.status(200).json(data);
     } catch (err) {
       next(err);
+      console.log(err);
     }
   }
 
@@ -289,6 +292,7 @@ class UserController {
       res.status(201).json({ message: `create education success` });
     } catch (err) {
       next(err);
+      console.log(err);
     }
   }
 
@@ -303,6 +307,7 @@ class UserController {
       res.status(200).json(data);
     } catch (err) {
       next(err);
+      console.log(err);
     }
   }
 
@@ -328,6 +333,7 @@ class UserController {
       res.status(200).json({ message: `Data with ${id} has been updated` });
     } catch (err) {
       next(err);
+      console.log(err);
     }
   }
 
@@ -346,6 +352,7 @@ class UserController {
       res.status(200).json({ message: `Education has been deleted` });
     } catch (err) {
       next(err);
+      console.log(err);
     }
   }
 
@@ -367,6 +374,7 @@ class UserController {
       res.status(200).json(data);
     } catch (err) {
       next(err);
+      console.log(err);
     }
   }
 
@@ -392,6 +400,7 @@ class UserController {
       res.status(201).json({ message: `create Work Experience success` });
     } catch (err) {
       next(err);
+      console.log(err);
     }
   }
 
@@ -406,6 +415,7 @@ class UserController {
       res.status(200).json(data);
     } catch (err) {
       next(err);
+      console.log(err);
     }
   }
 
@@ -431,6 +441,7 @@ class UserController {
       res.status(200).json({ message: `Data with ${id} has been updated` });
     } catch (err) {
       next(err);
+      console.log(err);
     }
   }
 
@@ -449,6 +460,7 @@ class UserController {
       res.status(200).json({ message: `Work Experience has been deleted` });
     } catch (err) {
       next(err);
+      console.log(err);
     }
   }
 }

@@ -10,9 +10,8 @@ router.post("/login", UserController.login);
 
 router.use(authentication);
 
-router.get("/users", UserController.allUser);
+router.get("/users", UserController.findUser);
 router.patch("/users", UserController.upgradeToken);
-router.get("/users/:id", UserController.findUser);
 router.delete("/users/:id", UserController.deleteUser);
 router.post("/users/payment-midtrans", UserController.paymentWithMidtrans);
 

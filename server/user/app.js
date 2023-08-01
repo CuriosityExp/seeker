@@ -26,3 +26,5 @@ run().then(() => {
     );
   });
 });
+
+module.exports = app
