@@ -100,6 +100,7 @@ class BookmarkController {
       }
       res.status(200).json({ message: "Success update bookmark title" });
     } catch (error) {
+      console.log(error)
       next(error);
     }
   }

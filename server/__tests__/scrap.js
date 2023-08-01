@@ -7,9 +7,12 @@ const Scrap = require("../user/mongo-models/scrap");
 const Job = require("../user/mongo-models/job");
 const Bookmark = require("../user/mongo-models/bookmark");
 const { queryInterface } = sequelize;
-const { run, client } = require("../user/config/mongo");
+const { run, client, getDb } = require("../user/config/mongo");
+const { ObjectId } = require("mongodb");
+
 
 let validToken;
+let bookmark;
 const tester = {
   username: "tester",
   email: "tester@mail.com",
@@ -83,33 +86,34 @@ const mockKarirJob = {
   salary: "IDR 3.500.000 - 4.100.000",
 };
 
-beforeAll(async (done) => {
+beforeAll(async () => {
   try {
-    run("testDB");
+    await run("testDB");
     const res = await User.create(tester);
+    const job = await Job.create({ ...mockGlintsJob, ...mockDetail });
+    bookmark = await Bookmark.create({UserId: res.id, jobId: new ObjectId(job._id), customTitle: job.jobTitle })
     validToken = SignToken({ id: res.id });
-    done();
   } catch (error) {
-    done(error);
+    console.log(error);
   }
 });
 
 beforeEach(() => {
   jest.restoreAllMocks();
 });
-afterAll(async (done) => {
+
+afterAll(async () => {
   try {
+    await getDb.dropDatabase("testDB")
     await client.close();
     queryInterface.bulkDelete("Users", null, {
       restartIdentity: true,
       truncate: true,
       cascade: true,
     });
-    done()
   } catch (error) {
-    done(error)
+    console.log(error);
   }
-
 });
 
 describe("/fetchjobs manual with query and 3 job portal", () => {
@@ -268,15 +272,6 @@ describe("/fetchjobs manual with query and 3 job portal", () => {
 describe("TEST ENDPOINT /bookmarks POST", () => {
   test("200 Success POST Glints Job Bookmarks by UserId", (done) => {
     Scrap.glintsDetail = jest.fn().mockResolvedValue(mockDetail);
-    Job.create = jest
-      .fn()
-      .mockResolvedValue({ _id: "testJobId", ...mockGlintsJob, ...mockDetail });
-    Job.findByPk = jest.fn().mockResolvedValue(Job.create);
-    Bookmark.create = jest.fn().mockResolvedValue({
-      UserId: 1,
-      jobId: "jobid_test",
-      customTitle: "job name",
-    });
     request(app)
       .post("/bookmarks")
       .send(mockGlintsJob)
@@ -294,17 +289,6 @@ describe("TEST ENDPOINT /bookmarks POST", () => {
   });
   test("200 Success POST Kalibrr Job Bookmarks by UserId", (done) => {
     Scrap.kalibrrDetail = jest.fn().mockResolvedValue(mockDetail);
-    Job.create = jest.fn().mockResolvedValue({
-      _id: "testJobId",
-      ...mockKalibrrJob,
-      ...mockDetail,
-    });
-    Job.findByPk = jest.fn().mockResolvedValue(Job.create);
-    Bookmark.create = jest.fn().mockResolvedValue({
-      UserId: 1,
-      jobId: "jobid_test",
-      customTitle: "job name",
-    });
     request(app)
       .post("/bookmarks")
       .send(mockKalibrrJob)
@@ -322,15 +306,6 @@ describe("TEST ENDPOINT /bookmarks POST", () => {
   });
   test("200 Success POST Karir Job Bookmarks by UserId", (done) => {
     Scrap.karirDetail = jest.fn().mockResolvedValue(mockDetail);
-    Job.create = jest
-      .fn()
-      .mockResolvedValue({ _id: "testJobId", ...mockKarirJob, ...mockDetail });
-    Job.findByPk = jest.fn().mockResolvedValue(Job.create);
-    Bookmark.create = jest.fn().mockResolvedValue({
-      UserId: 1,
-      jobId: "jobid_test",
-      customTitle: "job name",
-    });
     request(app)
       .post("/bookmarks")
       .send(mockKarirJob)
@@ -348,15 +323,6 @@ describe("TEST ENDPOINT /bookmarks POST", () => {
   });
   test("401 Invalid Token Detail POST Karir Job Bookmarks by UserId", (done) => {
     Scrap.karirDetail = jest.fn().mockResolvedValue(mockDetail);
-    Job.create = jest
-      .fn()
-      .mockResolvedValue({ _id: "testJobId", ...mockKarirJob, ...mockDetail });
-    Job.findByPk = jest.fn().mockResolvedValue(Job.create);
-    Bookmark.create = jest.fn().mockResolvedValue({
-      UserId: 1,
-      jobId: "jobid_test",
-      customTitle: "job name",
-    });
     request(app)
       .post("/bookmarks")
       .send(mockKarirJob)
@@ -372,17 +338,6 @@ describe("TEST ENDPOINT /bookmarks POST", () => {
   });
   test("401 Invalid Token Detail POST Kalibrr Job Bookmarks by UserId", (done) => {
     Scrap.kalibrrDetail = jest.fn().mockResolvedValue(mockDetail);
-    Job.create = jest.fn().mockResolvedValue({
-      _id: "testJobId",
-      ...mockKalibrrJob,
-      ...mockDetail,
-    });
-    Job.findByPk = jest.fn().mockResolvedValue(Job.create);
-    Bookmark.create = jest.fn().mockResolvedValue({
-      UserId: 1,
-      jobId: "jobid_test",
-      customTitle: "job name",
-    });
     request(app)
       .post("/bookmarks")
       .send(mockKalibrrJob)
@@ -398,15 +353,6 @@ describe("TEST ENDPOINT /bookmarks POST", () => {
   });
   test("401 Invalid Token Detail POST Glints Job Bookmarks by UserId", (done) => {
     Scrap.glintsDetail = jest.fn().mockResolvedValue(mockDetail);
-    Job.create = jest
-      .fn()
-      .mockResolvedValue({ _id: "testJobId", ...mockGlintsJob, ...mockDetail });
-    Job.findByPk = jest.fn().mockResolvedValue(Job.create);
-    Bookmark.create = jest.fn().mockResolvedValue({
-      UserId: 1,
-      jobId: "jobid_test",
-      customTitle: "job name",
-    });
     request(app)
       .post("/bookmarks")
       .send(mockKarirJob)
@@ -422,23 +368,14 @@ describe("TEST ENDPOINT /bookmarks POST", () => {
   });
 });
 
-describe("TEST ENDPOINT /bookmarks UPDATE", () => {
-  test("200 Success UPDATE Bookmarks by UserId", (done) => {
-    Bookmark.findByPk = jest.fn().mockResolvedValue({
-      _id: "Test Bookmark Id",
-      UserId: 1,
-      jobId: "Test Job Id",
-      customTitle: "Test Title lama",
-    });
-    Bookmark.update = jest.fn().mockResolvedValue({
-      bookmarkId: Bookmark.findByPk._id,
-      customTitle: "Test Custom Baru",
-    });
+describe.only("TEST ENDPOINT /bookmarks UPDATE", () => {
+  test.only("200 Success UPDATE Bookmarks by UserId", (done) => {
     request(app)
       .put("/bookmarks")
-      .send({ bookmarkId: "Test Bookmark Id", customTitle: "Test Custom Baru" })
+      .send({ bookmarkId: "a123456789101", customTitle: "Test Custom Baru" })
       .set("access_token", validToken)
       .then((res) => {
+        console.log(res)
         const { body, status } = res;
         expect(status).toBe(200);
         expect(body).toHaveProperty("message", "Success update bookmark title");
@@ -496,7 +433,6 @@ describe("TEST ENDPOINT /bookmarks UPDATE", () => {
       });
   });
   test("404 Not Found UPDATE Bookmarks by UserId should return Bookmark Not Found", (done) => {
-    Bookmark.findByPk = jest.fn().mockResolvedValue(undefined);
     request(app)
       .put("/bookmarks")
       .send({ bookmarkId: "Test Bookmark Id", customTitle: "Test Custom Baru" })
@@ -512,13 +448,6 @@ describe("TEST ENDPOINT /bookmarks UPDATE", () => {
       });
   });
   test("405 Forbidden UPDATE Bookmarks by UserId should return Bookmark Not Found", (done) => {
-    Bookmark.findByPk = jest.fn().mockResolvedValue({
-      _id: "Test Bookmark Id",
-      UserId: 1,
-      jobId: "Test Job Id",
-      customTitle: "Test Title lama",
-    });
-    Bookmark.update = jest.fn().mockResolvedValue(undefined);
     request(app)
       .put("/bookmarks")
       .send({ bookmarkId: "Test Bookmark Id", customTitle: "Test Custom Baru" })

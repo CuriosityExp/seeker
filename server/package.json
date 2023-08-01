@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "clear && jest --runInBand --coverage"
+    "test": "clear && DATABASE_ATLAS='mongodb+srv://curiosityexp:ODe0kwpppHOWukGg@cluster0.u4gwvht.mongodb.net/?retryWrites=true&w=majority' jest --runInBand --silent --verbose --coverage"
   },
   "keywords": [],
   "author": "",
@@ -12,5 +12,8 @@
   "devDependencies": {
     "jest": "^29.6.2",
     "supertest": "^6.3.3"
+  },
+  "dependencies": {
+    "mongodb": "^5.7.0"
   }
 }
