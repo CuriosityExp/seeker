@@ -3,7 +3,9 @@ const { SignToken } = require("../helpers/jwt");
 const { User, Profile, Education, WorkExperience } = require("../models");
 const midtransClient = require("midtrans-client");
 const nodemailer = require("nodemailer");
-const marked = require('marked');
+let MarkdownIt = require('markdown-it');
+const pdf = require('html-pdf')
+let md = new MarkdownIt();
 const { Configuration, OpenAIApi } = require("openai");
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY_USER,
@@ -461,20 +463,8 @@ class UserController {
   static async CreateCV(req, res, next) {
     try {
 
-      const dataExperience = await WorkExperience.findOne({
-        where: { id: req.user.id },
-      });
-
-      if (!dataExperience) throw { name: "NotFound" };
-
-      const dataEducation = await Education.findOne({
-        where: { id: req.user.id },
-      });
-
-      if (!dataEducation) throw { name: "NotFound" };
-
       const dataProfile = await Profile.findOne({
-        where: { id: req.user.id },
+        where: { UserId: req.user.id },
       });
 
       if (!dataProfile) throw { name: "NotFound" };
@@ -485,22 +475,33 @@ class UserController {
 
       if (!dataUser) throw { name: "NotFound" };
 
+      const dataExperience = await WorkExperience.findOne({
+        where: { ProfileId: dataProfile.id },
+      });
+
+      if (!dataExperience) throw { name: "NotFound" };
+
+      const dataEducation = await Education.findOne({
+        where: { ProfileId: dataProfile.id },
+      });
+
+      if (!dataEducation) throw { name: "NotFound" };
+
       const prompt = `Generate cv markdown with this data; name:${dataProfile.fullName}, about me:${dataProfile.aboutMe},
        gender:${dataProfile.gender}, phone number:${dataProfile.phoneNumber}, email:${dataUser.email}, experiences:${dataExperience.company},
        positions:${dataExperience.position}, major:${dataEducation.Major}, education:${dataEducation.graduatedEducation}`;
       const response = await openai.createCompletion({
         model: "text-davinci-003",
         prompt,
-        max_tokens: 1000,
+        max_tokens: 1000
       });
 
-      const dataCV = response;
+      const dataCV = response.data.choices[0].text;
 
-      const file = await unified()
-      .use(remarkHtml)
-      .process(await read(dataCV))
-
-      var options = { format: 'Letter' };
+      let file = md.render(dataCV)
+      
+      console.log(file, '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,,')
+      let options = { format: 'Letter' };
 
       pdf.create(file, options).toFile('./CVGenerated.pdf', function(err, res) {
         if (err) return console.log(err);
