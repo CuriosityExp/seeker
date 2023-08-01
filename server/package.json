@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest --runInBand --coverage"
+    "test": "clear && jest --runInBand --coverage"
   },
   "keywords": [],
   "author": "",

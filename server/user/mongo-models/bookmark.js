@@ -29,9 +29,19 @@ class Bookmark {
 
   static async findByPk(bookmarkId) {
     const bookmarkCollection = this.bookmarkCollection();
-    return await bookmarkCollection.findOne({
-      _id: new ObjectId(bookmarkId),
-    });
+    return await bookmarkCollection.aggregate([
+      {
+        $match: { _id: new ObjectId(bookmarkId) },
+      },
+      {
+        $lookup: {
+          from: "jobs",
+          localField: "jobId",
+          foreignField: "_id",
+          as: "Job",
+        },
+      },
+    ]);
   }
 
   static async create({ UserId, jobId, customTitle }) {
@@ -41,6 +51,7 @@ class Bookmark {
         UserId,
         jobId,
         customTitle,
+        isPost: false,
       });
       return bookmarkCollection.findOne({
         _id: new ObjectId(newBookmark.insertedId),

@@ -17,23 +17,19 @@ class BookmarkController {
         workExperience,
       } = req.body
       let detail;
-      console.log(url)
       if (url.includes("kalibrr")) {
-        console.log("kalibrr")
+        // console.log("kalibrr")
         detail = await Scrap.kalibrrDetail(url)
       }
       if (url.includes("karir")) {
-        console.log("karir")
+        // console.log("karir")
         detail = await Scrap.karirDetail(url)
       }
       if (url.includes("glints")) {
-        console.log("glints")
+        // console.log("glints")
         detail = await Scrap.glintsDetail(url)
       }
-      if (!detail) {
-        throw {name: "CustomError", status: 404, message: "Job Detail not found"}
-      }
-      console.log(detail)
+      // console.log(detail)
       const jobDetail = await Job.create({
         url,
         logo,
@@ -45,6 +41,7 @@ class BookmarkController {
         jobDesc: detail.jobDesc,
         minimumSkills: detail.minimumSkills,
       });
+      // console.log(jobDetail)
       const jobId = jobDetail._id
       if (!UserId) {
         throw { name: "CustomError", status: 400, message: "UserId required" };
@@ -63,6 +60,7 @@ class BookmarkController {
       });
       res.status(201).json(bookmark);
     } catch (error) {
+      console.log(error)
       next(error);
     }
   }
@@ -84,7 +82,7 @@ class BookmarkController {
           message: "Custom Bookmark Title required",
         };
       }
-      const bookmark = Bookmark.findByPk(bookmarkId);
+      const bookmark = await Bookmark.findByPk(bookmarkId);
       if (!bookmark) {
         throw {
           name: "CustomError",
@@ -92,7 +90,7 @@ class BookmarkController {
           message: "Bookmark not found",
         };
       }
-      const newBookmark = Bookmark.update({ bookmarkId, customTitle });
+      const newBookmark = await Bookmark.update({ bookmarkId, customTitle });
       if (!newBookmark) {
         throw {
           name: "CustomError",
@@ -133,8 +131,6 @@ class BookmarkController {
 
   static async readBookmark(req, res, next) {
     try {
-      // nanti ganti pakai ini setelah ada auth
-      // const {UserId} = req.user
       const { id: UserId } = req.user;
       const bookmarks = await Bookmark.findAll(UserId);
       res.status(200).json(bookmarks);
