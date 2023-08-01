@@ -369,10 +369,10 @@ describe("TEST ENDPOINT /bookmarks POST", () => {
 });
 
 describe.only("TEST ENDPOINT /bookmarks UPDATE", () => {
-  test.only("200 Success UPDATE Bookmarks by UserId", (done) => {
+  test("200 Success UPDATE Bookmarks by UserId", (done) => {
     request(app)
       .put("/bookmarks")
-      .send({ bookmarkId: "a123456789101", customTitle: "Test Custom Baru" })
+      .send({ bookmarkId: bookmark._id, customTitle: "Test Custom Baru" })
       .set("access_token", validToken)
       .then((res) => {
         console.log(res)
@@ -432,10 +432,10 @@ describe.only("TEST ENDPOINT /bookmarks UPDATE", () => {
         done(err);
       });
   });
-  test("404 Not Found UPDATE Bookmarks by UserId should return Bookmark Not Found", (done) => {
+  test.only("404 Not Found UPDATE Bookmarks by UserId should return Bookmark Not Found", (done) => {
     request(app)
       .put("/bookmarks")
-      .send({ bookmarkId: "Test Bookmark Id", customTitle: "Test Custom Baru" })
+      .send({ bookmarkId: "a23456789101", customTitle: "Test Custom Baru" })
       .set("access_token", validToken)
       .then((res) => {
         const { body, status } = res;
