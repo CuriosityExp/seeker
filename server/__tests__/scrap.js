@@ -105,11 +105,10 @@ afterAll(async (done) => {
       truncate: true,
       cascade: true,
     });
-    done()
+    done();
   } catch (error) {
-    done(error)
+    done(error);
   }
-
 });
 
 describe("/fetchjobs manual with query and 3 job portal", () => {
