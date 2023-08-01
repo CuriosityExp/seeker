@@ -31,13 +31,9 @@ class Bookmark {
     const bookmarkCollection = this.bookmarkCollection();
     return await bookmarkCollection.aggregate([
       {
-<<<<<<< HEAD
-        $match: { _id: new ObjectId(bookmarkId) },
-=======
         $match: {
           _id: new ObjectId(bookmarkId),
         },
->>>>>>> test-bookmark
       },
       {
         $lookup: {
@@ -47,11 +43,7 @@ class Bookmark {
           as: "Job",
         },
       },
-<<<<<<< HEAD
-    ]);
-=======
     ]).toArray();
->>>>>>> test-bookmark
   }
 
   static async create({ UserId, jobId, customTitle }) {
