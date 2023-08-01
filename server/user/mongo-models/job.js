@@ -6,10 +6,10 @@ class Job {
     return getDb().collection("jobs");
   }
 
-  static async findAll() {
-    const jobCollection = this.jobCollection();
-    return await jobCollection.find().toArray();
-  }
+  // static async findAll() {
+  //   const jobCollection = this.jobCollection();
+  //   return await jobCollection.find().toArray();
+  // }
 
   static async findByPk(jobId) {
     const jobCollection = this.jobCollection();
@@ -26,6 +26,8 @@ class Job {
     companyLocation,
     salary,
     workExperience,
+    jobDesc,
+    minimumSkills
   }) {
     try {
         const jobCollection =  this.jobCollection()
@@ -37,6 +39,8 @@ class Job {
           companyLocation,
           salary,
           workExperience,
+          jobDesc,
+          minimumSkills,
         });
         return await jobCollection.findOne({
           _id: new ObjectId(newJob.insertedId),

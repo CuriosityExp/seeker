@@ -12,13 +12,22 @@ class JobController {
     }
   }
 
-  static async fetchJobDetail(req, res, next) {
+  static async fetchJobGlints(req,res,next){
     try {
-      const { jobUrl } = req.body;
-      const jobDetail = await Scrap.kalibrrDetail(jobUrl);
-      res.status(200).json(jobDetail);
+      const {query} = req.body
+      const jobs = await Scrap.glintsUrl(query)
+      res.status(200).json(jobs)
     } catch (error) {
-      next(error);
+      next (error)
+    }
+  }
+  static async fetchJobKarir(req,res,next){
+    try {
+      const {query} = req.body
+      const jobs = await Scrap.karirUrl(query)
+      res.status(200).json(jobs)
+    } catch (error) {
+      next (error)
     }
   }
 }

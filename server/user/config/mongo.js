@@ -11,10 +11,10 @@ const client = new MongoClient(uri, {
 });
 let db;
 
-async function run() {
+async function run(dbName) {
   try {
-    // console.log(uri)
-    db = await client.db("seekerDB");
+    console.log("MASUK SINI <<<<<<")
+    db = await client.db(dbName||"seekerDB");
   } catch (error) {
     console.log(error);
   }
@@ -27,4 +27,5 @@ function getDb() {
 module.exports = {
   run,
   getDb,
+  client
 };
