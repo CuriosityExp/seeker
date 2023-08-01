@@ -1,7 +1,7 @@
 const puppeteer = require("puppeteer");
 
 class Scrap {
-  static glintsUrl(query) {
+  static async glintsUrl(query) {
     return new Promise(async (resolve, reject) => {
       try {
         const url = `https://glints.com/id/opportunities/jobs/explore?keyword=${query}&country=ID&locationName=All+Cities%2FProvinces`;
@@ -37,7 +37,7 @@ class Scrap {
     });
   }
 
-  static glintsDetail(url) {
+  static async glintsDetail(url) {
     return new Promise(async (resolve, reject) => {
       try {
         const browser = await puppeteer.launch({
@@ -98,7 +98,7 @@ class Scrap {
     });
   }
 
-  static kalibrrDetail(url) {
+  static async kalibrrDetail(url) {
     return new Promise(async (resolve, reject) => {
       try {
         const browser = await puppeteer.launch({
@@ -128,7 +128,7 @@ class Scrap {
     });
   }
 
-  static karirUrl(query) {
+  static async karirUrl(query) {
     return new Promise(async (resolve, reject) => {
       const browser = await puppeteer.launch({
         headless: true,
@@ -165,7 +165,7 @@ class Scrap {
     });
   }
 
-  static karirDetail(url) {
+  static async karirDetail(url) {
     return new Promise(async (resolve, reject) => {
       try {
         const browser = await puppeteer.launch({
