@@ -2,15 +2,11 @@ const app = require("../app");
 const request = require("supertest");
 const { User } = require("../models");
 const { SignToken } = require("../helpers/jwt");
-const { sequelize } = require("../models");
 const Scrap = require("../mongo-models/scrap");
 const Job = require("../mongo-models/job");
 const Bookmark = require("../mongo-models/bookmark");
-const { queryInterface } = sequelize;
 const { run, client, getDb } = require("../config/mongo");
 const { ObjectId } = require("mongodb");
-const Test = require("../mongo-models/test");
-
 
 let validToken;
 let bookmark;
@@ -97,7 +93,11 @@ beforeAll(async () => {
     });
     const res = await User.create(tester);
     const job = await Job.create({ ...mockGlintsJob, ...mockDetail });
-    bookmark = await Bookmark.create({UserId: res.id, jobId: new ObjectId(job._id), customTitle: job.jobTitle })
+    bookmark = await Bookmark.create({
+      UserId: res.id,
+      jobId: new ObjectId(job._id),
+      customTitle: job.jobTitle,
+    });
     validToken = SignToken({ id: res.id });
   } catch (error) {
     console.log(error);
@@ -110,7 +110,7 @@ beforeEach(() => {
 
 afterAll(async () => {
   try {
-    await getDb().dropDatabase("testDB")
+    await getDb().dropDatabase("testDB");
     await client.close();
     await User.destroy({
       restartIdentity: true,
@@ -122,23 +122,10 @@ afterAll(async () => {
   }
 });
 
-describe.only("test class", ()=>{
-  test("test success", (done)=>{
-     jest.spyOn(Scrap,"kalibrrUrl").mockResolvedValue(mockJobs);
-    Test.getUsers().then(data=>{
-      console.log(data)
-      done()
-    }).catch(err=> {
-      console.log(err)
-      done(err)
-    })
-  })
-})
-
 describe("/fetchjobs manual with query and 3 job portal", () => {
   test("200 Success Fetch kalibrr should return array of object", (done) => {
     // Scrap.kalibrrUrl = jest.fn().mockResolvedValue(mockJobs);
-     jest.spyOn(Scrap,"kalibrrUrl").mockResolvedValue(mockJobs);
+    jest.spyOn(Scrap, "kalibrrUrl").mockResolvedValue(mockJobs);
     request(app)
       .post("/fetchjobskalibrr")
       .send({ query: "frontend" })
@@ -155,7 +142,7 @@ describe("/fetchjobs manual with query and 3 job portal", () => {
       });
   });
   test("200 Success Fetch karir should return array of object", (done) => {
-     jest.spyOn(Scrap, "karirUrl").mockResolvedValue(mockJobs);
+    jest.spyOn(Scrap, "karirUrl").mockResolvedValue(mockJobs);
     request(app)
       .post("/fetchjobskarir")
       .send({ query: "frontend" })
@@ -172,7 +159,7 @@ describe("/fetchjobs manual with query and 3 job portal", () => {
       });
   });
   test("200 Success Fetch glints should return array of object", (done) => {
-     jest.spyOn(Scrap, "glintsUrl").mockResolvedValue(mockJobs);
+    jest.spyOn(Scrap, "glintsUrl").mockResolvedValue(mockJobs);
     request(app)
       .post("/fetchjobsglints")
       .send({ query: "frontend" })
@@ -219,7 +206,6 @@ describe("/fetchjobs manual with query and 3 job portal", () => {
       });
   });
   test("401 Error Fetch karir should return message Invalid Token", (done) => {
-
     request(app)
       .post("/fetchjobskarir")
       .send({ query: "frontend" })
@@ -235,7 +221,7 @@ describe("/fetchjobs manual with query and 3 job portal", () => {
       });
   });
   test("500 Error Fetch glints should return array of object", (done) => {
-     jest.spyOn(Scrap, "glintsUrl").mockRejectedValue(mockJobs);
+    jest.spyOn(Scrap, "glintsUrl").mockRejectedValue(mockJobs);
     request(app)
       .post("/fetchjobsglints")
       .send({ query: "frontend" })
@@ -252,7 +238,7 @@ describe("/fetchjobs manual with query and 3 job portal", () => {
       });
   });
   test("500 Error Fetch kalibrr should return array of object", (done) => {
-     jest.spyOn(Scrap, "kalibrrUrl").mockRejectedValue(mockJobs);
+    jest.spyOn(Scrap, "kalibrrUrl").mockRejectedValue(mockJobs);
     request(app)
       .post("/fetchjobskalibrr")
       .send({ query: "frontend" })
@@ -269,7 +255,7 @@ describe("/fetchjobs manual with query and 3 job portal", () => {
       });
   });
   test("500 Error Fetch karir should return array of object", (done) => {
-     jest.spyOn(Scrap, "karirUrl").mockRejectedValue(mockJobs);
+    jest.spyOn(Scrap, "karirUrl").mockRejectedValue(mockJobs);
     request(app)
       .post("/fetchjobskarir")
       .send({ query: "frontend" })
@@ -393,7 +379,7 @@ describe("TEST ENDPOINT /bookmarks UPDATE", () => {
       .send({ bookmarkId: bookmark._id, customTitle: "Test Custom Baru" })
       .set("access_token", validToken)
       .then((res) => {
-        console.log(res)
+        console.log(res);
         const { body, status } = res;
         expect(status).toBe(200);
         expect(body).toHaveProperty("message", "Success update bookmark title");
@@ -484,16 +470,9 @@ describe("TEST ENDPOINT /bookmarks UPDATE", () => {
 
 describe("TEST ENDPOINT /bookmarks DELETE", () => {
   test("200 Success DELETE Bookmarks by BookmarkId", (done) => {
-    Bookmark.findByPk = jest.fn().mockResolvedValue({
-      _id: "Test Bookmark Id",
-      UserId: 1,
-      jobId: "Test Job Id",
-      customTitle: "Test Title lama",
-    });
-    Bookmark.destroy = jest.fn().mockResolvedValue("OK");
     request(app)
       .delete("/bookmarks")
-      .send({ bookmarkId: "Test Bookmark Id" })
+      .send({ bookmarkId: bookmark._id })
       .set("access_token", validToken)
       .then((res) => {
         const { body, status } = res;
@@ -519,7 +498,7 @@ describe("TEST ENDPOINT /bookmarks DELETE", () => {
         done(err);
       });
   });
-  test("401 Bad Request DELETE Bookmarks by BookmarkId", (done) => {
+  test("401 Unauthorized DELETE Bookmarks by BookmarkId", (done) => {
     request(app)
       .delete("/bookmarks")
       .then((res) => {
@@ -536,7 +515,7 @@ describe("TEST ENDPOINT /bookmarks DELETE", () => {
     Bookmark.findByPk = jest.fn().mockResolvedValue(undefined);
     request(app)
       .delete("/bookmarks")
-      .send({ bookmarkId: "Test Bookmark Id" })
+      .send({ bookmarkId: "a123456789101" })
       .set("access_token", validToken)
       .then((res) => {
         const { body, status } = res;
@@ -552,11 +531,6 @@ describe("TEST ENDPOINT /bookmarks DELETE", () => {
 
 describe("TEST ENDPOINT /bookmarks GET", () => {
   test("200 Success GET Bookmarks by UserId", (done) => {
-    Bookmark.findAll = jest
-      .fn()
-      .mockResolvedValue([
-        { _id: "Bookmark Id", jobId: "Job Id", UserId: "User id" },
-      ]);
     request(app)
       .get("/bookmarks")
       .set("access_token", validToken)
@@ -570,7 +544,7 @@ describe("TEST ENDPOINT /bookmarks GET", () => {
         console.log(err);
       });
   });
-  test("401 Success GET Bookmarks by UserId", (done) => {
+  test("401 Unauthorized GET Bookmarks by UserId", (done) => {
     request(app)
       .get("/bookmarks")
       .then((res) => {
