@@ -4,8 +4,10 @@ const { User, Profile, Education, WorkExperience } = require("../models");
 const midtransClient = require("midtrans-client");
 const nodemailer = require("nodemailer");
 
+// 170,188-189,202-203,246-247,268-269,294-295,309-310,335-336,354-355,376-377,402-403,417-418,443-444,462-463
+
 class UserController {
-  static async register(req, res) {
+  static async register(req, res, next) {
     try {
       const { username, email, password } = req.body;
 
@@ -17,11 +19,10 @@ class UserController {
 
       res.status(201).json({ message: `Register Success` });
     } catch (err) {
-      console.log(err);
-      res.status(500).json({ message: `Internal server error` });
+      next(err);
     }
   }
-  static async login(req, res) {
+  static async login(req, res, next) {
     try {
       const { username, email, password } = req.body;
 
@@ -31,7 +32,7 @@ class UserController {
         const user = await User.findOne({ where: { username } });
         if (!user) return res.status(400).json({ message: `Invalid User` });
         const isPassword = checkPassword(password, user.password);
-        if (!isPassword) return res.status(400).json({ message: `Invalid User` });
+        if (!isPassword) return res.status(400).json({ message: `Invalid Password` });
 
         res.status(200).json({ access_token: SignToken({ id: user.id }) });
       } else if (email) {
@@ -39,35 +40,29 @@ class UserController {
         if (!user) return res.status(400).json({ message: `Invalid User` });
 
         const isPassword = checkPassword(password, user.password);
-        if (!isPassword) return res.status(400).json({ message: `Invalid User` });
+        if (!isPassword) return res.status(400).json({ message: `Invalid Password` });
 
         res.status(200).json({ access_token: SignToken({ id: user.id }) });
       } else {
         return res.status(400).json({ message: `username/email is required` });
       }
     } catch (err) {
-      console.log(err);
-      res.status(500).json({ message: `Internal server error` });
+      console.log(err, "<<<login");
+      next(err);
     }
   }
 
   //Authentication
 
-  //Users
-  static async allUser(req, res, next) {
-    try {
-      const data = await User.findAll();
-
-      res.status(200).json(data);
-    } catch (err) {
-      next(err);
-    }
-  }
-
+  //Users`
   static async findUser(req, res, next) {
     try {
       const data = await User.findOne({
-        where: { id: req.params.id },
+        where: { id: req.user.id },
+        include: {
+          model: Profile,
+          include: [Education, WorkExperience],
+        },
       });
 
       if (!data) throw { name: "NotFound" };
@@ -81,6 +76,7 @@ class UserController {
   static async upgradeToken(req, res, next) {
     try {
       const { token } = req.body;
+      if (!token) return res.status(400).json({ message: `Token is required` });
 
       const user = await User.findOne({
         where: {
@@ -100,6 +96,8 @@ class UserController {
   static async paymentWithMidtrans(req, res, next) {
     try {
       const { token } = req.body;
+      if (!token) return res.status(400).json({ message: `Token is required` });
+
       let price = 0;
 
       if (token == 30) {
@@ -141,32 +139,32 @@ class UserController {
 
       const midtransToken = await snap.createTransaction(parameter);
       // console.log(midtransToken, "<<<");
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        user: "smtp.gmail.com",
-        port: 465,
-        secure: true,
-        auth: {
-          user: "official.seeker.helper@gmail.com",
-          pass: "rtmyxknfwhfxymso",
-        },
-      });
+      // const transporter = nodemailer.createTransport({
+      //   service: "gmail",
+      //   user: "smtp.gmail.com",
+      //   port: 465,
+      //   secure: true,
+      //   auth: {
+      //     user: "official.seeker.helper@gmail.com",
+      //     pass: "rtmyxknfwhfxymso",
+      //   },
+      // });
 
-      const mailOptions = {
-        from: "official.seeker.helper@gmail.com",
-        to: `${user.email}`,
-        subject: "Purchase Success",
-        text: "Thank you for your purchase, more token has been added to your account",
-      };
+      // const mailOptions = {
+      //   from: "official.seeker.helper@gmail.com",
+      //   to: `${user.email}`,
+      //   subject: "Purchase Success",
+      //   text: "Thank you for your purchase, more token has been added to your account",
+      // };
 
-      transporter.sendMail(mailOptions, function (error, info) {
-        if (error) {
-          console.log(error + ">>>>>>>>>>>>>>>>>>>>>>>>");
-        } else {
-          console.log("Email sent: " + info.response + "!!!!!!!!!!!!!!!!");
-          // do something useful
-        }
-      });
+      // transporter.sendMail(mailOptions, function (error, info) {
+      //   if (error) {
+      //     console.log(error + ">>>>>>>>>>>>>>>>>>>>>>>>");
+      //   } else {
+      //     console.log("Email sent: " + info.response + "!!!!!!!!!!!!!!!!");
+      //     // do something useful
+      //   }
+      // });
 
       res.status(200).json(midtransToken);
     } catch (err) {
@@ -179,16 +177,16 @@ class UserController {
       const { id } = req.params;
 
       const user = await User.findByPk(+id);
-      if (!user) throw { name: "NotFound" };
+      if (!user) throw { name: "NotFound" }; //
 
       await User.destroy({
         where: { id },
         cascade: true,
       });
 
-      res.status(200).json({ message: `User with id ${id} has been deleted` });
+      res.status(200).json({ message: `User has been deleted` });
     } catch (err) {
-      next(err);
+      next(err); //
     }
   }
 
@@ -201,7 +199,7 @@ class UserController {
 
       res.status(200).json(data);
     } catch (err) {
-      next(err);
+      next(err); //
     }
   }
 
@@ -209,6 +207,7 @@ class UserController {
     try {
       const data = await Profile.findOne({
         where: { id: req.params.id },
+        include: [Education, WorkExperience],
       });
 
       if (!data) throw { name: "NotFound" };
@@ -240,9 +239,9 @@ class UserController {
         { where: { id } }
       );
 
-      res.status(200).json({ message: `Data with ${id} has been updated` });
+      res.status(200).json({ message: `Data has been updated` });
     } catch (err) {
-      next(err);
+      next(err); //
     }
   }
 
@@ -288,7 +287,7 @@ class UserController {
 
       res.status(201).json({ message: `create education success` });
     } catch (err) {
-      next(err);
+      next(err); //
     }
   }
 
@@ -302,7 +301,7 @@ class UserController {
 
       res.status(200).json(data);
     } catch (err) {
-      next(err);
+      next(err); //
     }
   }
 
@@ -325,7 +324,7 @@ class UserController {
         { where: { id } }
       );
 
-      res.status(200).json({ message: `Data with ${id} has been updated` });
+      res.status(200).json({ message: `Data has been updated` });
     } catch (err) {
       next(err);
     }
@@ -345,7 +344,7 @@ class UserController {
 
       res.status(200).json({ message: `Education has been deleted` });
     } catch (err) {
-      next(err);
+      next(err); //
     }
   }
 
@@ -366,7 +365,7 @@ class UserController {
 
       res.status(200).json(data);
     } catch (err) {
-      next(err);
+      next(err); //
     }
   }
 
@@ -391,7 +390,7 @@ class UserController {
 
       res.status(201).json({ message: `create Work Experience success` });
     } catch (err) {
-      next(err);
+      next(err); //
     }
   }
 
@@ -405,7 +404,7 @@ class UserController {
 
       res.status(200).json(data);
     } catch (err) {
-      next(err);
+      next(err); //
     }
   }
 
@@ -428,9 +427,9 @@ class UserController {
         { where: { id } }
       );
 
-      res.status(200).json({ message: `Data with ${id} has been updated` });
+      res.status(200).json({ message: `Data has been updated` });
     } catch (err) {
-      next(err);
+      next(err); //
     }
   }
 
@@ -449,6 +448,7 @@ class UserController {
       res.status(200).json({ message: `Work Experience has been deleted` });
     } catch (err) {
       next(err);
+      //
     }
   }
 }
