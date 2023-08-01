@@ -31,7 +31,9 @@ class Bookmark {
     const bookmarkCollection = this.bookmarkCollection();
     return await bookmarkCollection.aggregate([
       {
-        $match: { _id: new ObjectId(bookmarkId) },
+        $match: {
+          _id: new ObjectId(bookmarkId),
+        },
       },
       {
         $lookup: {
@@ -64,7 +66,8 @@ class Bookmark {
   static async update({ bookmarkId, customTitle }) {
     try {
       const bookmarkCollection = this.bookmarkCollection();
-      const newBookmark = await bookmarkCollection.updateOne(
+      console.log(bookmarkId,customTitle)
+      await bookmarkCollection.updateOne(
         {
           _id: new ObjectId(bookmarkId),
         },
@@ -72,8 +75,8 @@ class Bookmark {
           $set: { customTitle },
         }
       );
-      return bookmarkCollection.findOne({
-        _id: new ObjectId(newBookmark.insertedId),
+      return await bookmarkCollection.findOne({
+        _id: new ObjectId(bookmarkId),
       });
     } catch (error) {
       throw error;
