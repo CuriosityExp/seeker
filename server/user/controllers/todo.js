@@ -26,13 +26,19 @@ class TodoController {
         console.log(bookmark)
 
         const prompt = `
-        Sebutkan 10 persiapan dalam array of objject yang dapat dilakukan untuk mendapatkan pekerjaan
+      berikan todo list dalam format array of objects tanpa di tambahkan apapun supaya dapat saya copy, tentang hal yang harus dilakukan sebelum melamar pekerjaan ${bookmark.job[0].jobTitle} sebanyak 10 to do list berdasarkan ${bookmark.job[0].minimumReq}, dengan properti
+      [
+        {
+          task:
+          completed:
+        }
+      ]
         `;
 
         const response = await openai.createCompletion({
           model: "text-davinci-003",
           prompt,
-          max_tokens: 1000,
+          max_tokens: 3000,
         });
 
         const completion = response.data.choices[0].text;
@@ -57,7 +63,7 @@ class TodoController {
       }
     }
 
-    static async getTodo(req, res, next) {
+    static async updateTodo(req, res, next) {
       try {
         const { UserId } = req.user;
         const todos = await Todo.findAll(UserId);

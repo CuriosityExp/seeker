@@ -42,7 +42,7 @@ router.delete("/bookmarks", BookmarkController.deleteBookmark);
 router.put("/bookmarks", BookmarkController.updateBookmark);
 
 router.get("/todos", TodoController.getTodo);
-router.post("/todos", TodoController.createTodo);
+router.post("/todos/:BookmarkId", TodoController.createTodo);
 // router.put("/work-experience/:id", TodoController.updateWorkExperience);
 // router.delete("/work-experience/:id", TodoController.deleteWorkExperience);
 
