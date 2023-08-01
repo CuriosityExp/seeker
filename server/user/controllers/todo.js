@@ -1,8 +1,9 @@
 const Todo = require("../mongo-models/todo");
 const Bookmark = require("../mongo-models/bookmark");
+const { ObjectId } = require("mongodb");
 const { Configuration, OpenAIApi } = require("openai");
 const configuration = new Configuration({
-  apiKey: "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",
+  apiKey: "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",
 });
 const openai = new OpenAIApi(configuration);
 
@@ -22,27 +23,29 @@ class TodoController {
       // const { BookmarkId } = req.params;
       // const bookmark = await Bookmark.findByPk(BookmarkId);
       // console.log(bookmark);
-      const job = {
-        jobTitle: "Backend Dev",
-        minimumReq:
-          "1 tahun pengalaman, dapat menggunakan node js, rest api, express, mongodb, sequelize",
-        location: "Jakarta",
-        companyName: "PT. Putus Asa",
-      };
+      // const job = {
+      //   jobTitle: "Backend Dev",
+      //   minimumReq:
+      //     "1 tahun pengalaman, dapat menggunakan node js, rest api, express, mongodb, sequelize",
+      //   location: "Jakarta",
+      //   companyName: "PT. Putus Asa",
+      // };
 
         const { BookmarkId } = req.params;
-        const bookmark = await Bookmark.findByPk(BookmarkId);
-        console.log(bookmark)
+        console.log(BookmarkId)
+        const data = await Bookmark.findByPk(BookmarkId);
+        console.log(data)
 
         const prompt = `
-      berikan todo list dalam format array of objects tanpa di tambahkan apapun supaya dapat saya copy, tentang hal yang harus dilakukan sebelum melamar pekerjaan ${bookmark.job[0].jobTitle} sebanyak 10 to do list berdasarkan ${bookmark.job[0].minimumReq}, dengan properti
+      berikan todo list yang hanya mengembalikan array of objects tanpa tambahan text apapun selain array tersebut, tentang hal yang harus dilakukan sebelum melamar pekerjaan ${data[0].Job.jobTitle} sebanyak 10 to do list berdasarkan ${data[0].Job.jobDesc}, dengan properti
 
       [
         {
-          task:
-          completed:
+          "task":
         }
       ]
+
+      jangan isi apapun di dalam array ataupun objects
         `;
 
         const response = await openai.createCompletion({
@@ -51,15 +54,20 @@ class TodoController {
           max_tokens: 3000,
         });
 
-      console.log(response);
-
       const completion = response.data.choices[0].text;
       console.log(completion);
-      // const todosdata = toArray(completion);
+      let todosdata = JSON.parse(completion);
+      console.log(todosdata)
 
-      // const { UserId } = req.user;
-      // const todos = await Todo.bulkInsert(todosdata);
-      res.status(200).json({ msg: "success" });
+      todosdata = todosdata.map((el) => {
+        el.completed = false
+        el.bookmarkId = new ObjectId(BookmarkId)
+        return el
+      })
+
+      const { UserId } = req.user;
+      const todos = await Todo.bulkInsert(todosdata);
+      res.status(201).json({msg:"Success"});
     } catch (error) {
       next(error);
     }

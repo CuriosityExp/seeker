@@ -1,4 +1,4 @@
-const { getDb } = require("../config/config");
+const { getDb } = require("../config/mongo");
 const { ObjectId } = require("mongodb");
 
 class TodoList {

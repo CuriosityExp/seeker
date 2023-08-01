@@ -41,7 +41,7 @@ class Bookmark {
           as: "Job",
         },
       },
-    ]);
+    ]).toArray();
   }
 
   static async create({ UserId, jobId, customTitle }) {
