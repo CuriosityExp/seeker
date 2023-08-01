@@ -27,6 +27,29 @@ class TodoList {
     }
   }
 
+  static async destroyOne(Id) {
+    try {
+      const todoCollection = this.todoCollection();
+      return await todoCollection.deleteOne({
+        _id: new ObjectId(Id),
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async patch(Id, data) {
+    try {
+      const todoCollection = this.todoCollection();
+      return await todoCollection.updateOne({
+        _id: new ObjectId(Id),
+        status: data
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
   static async destroy(bookmarkId) {
     try {
       const todoCollection = this.todoCollection();
