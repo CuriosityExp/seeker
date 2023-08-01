@@ -11,6 +11,9 @@ class TodoController {
   static async getTodo(req, res, next) {
     try {
       const { UserId } = req.user;
+      if(!UserId){
+        res.status(401).json({message: "Invalid Token"})
+      }
       const todos = await Todo.findAll(UserId);
       res.status(200).json(todos);
     } catch (error) {
@@ -31,12 +34,19 @@ class TodoController {
       //   companyName: "PT. Putus Asa",
       // };
 
-        const { BookmarkId } = req.params;
-        console.log(BookmarkId)
-        const data = await Bookmark.findByPk(BookmarkId);
-        console.log(data)
+      const { BookmarkId } = req.params;
 
-        const prompt = `
+      
+      console.log(BookmarkId)
+      const data = await Bookmark.findByPk(BookmarkId);
+      
+      if(!data){
+        res.status(404).json({message: "data not found"})
+      }
+      
+      console.log(data)
+      
+      const prompt = `
       berikan todo list yang hanya mengembalikan array of objects tanpa tambahan text apapun selain array tersebut, tentang hal yang harus dilakukan sebelum melamar pekerjaan ${data[0].Job.jobTitle} sebanyak 10 to do list berdasarkan ${data[0].Job.jobDesc}, dengan properti
 
       [
@@ -44,35 +54,39 @@ class TodoController {
           "task":
         }
       ]
-
+      
       jangan isi apapun di dalam array ataupun objects
-        `;
-
-        const response = await openai.createCompletion({
-          model: "text-davinci-003",
-          prompt,
-          max_tokens: 3000,
-        });
-
+      `;
+      
+      const response = await openai.createCompletion({
+        model: "text-davinci-003",
+        prompt,
+        max_tokens: 3000,
+      });
+      
       const completion = response.data.choices[0].text;
       console.log(completion);
       let todosdata = JSON.parse(completion);
       console.log(todosdata)
-
+      
       todosdata = todosdata.map((el) => {
         el.completed = false
         el.bookmarkId = new ObjectId(BookmarkId)
         return el
       })
-
+      
       const { UserId } = req.user;
+      if(!UserId){
+        res.status(401).json({message: "Invalid Token"})
+      }
+      
       const todos = await Todo.bulkInsert(todosdata);
-      res.status(201).json({msg:"Success"});
+      res.status(201).json({message:"Success added data"});
     } catch (error) {
       next(error);
     }
   }
-
+  
   static async deleteTodo(req, res, next) {
     try {
       const { Id } = req.params;
