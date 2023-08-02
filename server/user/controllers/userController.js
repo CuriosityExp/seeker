@@ -450,6 +450,61 @@ class UserController {
       //
     }
   }
+
+  static async CreateCV(req, res, next) {
+    try {
+
+      const dataProfile = await Profile.findOne({
+        where: { UserId: req.user.id },
+      });
+
+      if (!dataProfile) throw { name: "NotFound" };
+
+      const dataUser = await User.findOne({
+        where: { id: req.user.id },
+      });
+
+      if (!dataUser) throw { name: "NotFound" };
+
+      const dataExperience = await WorkExperience.findOne({
+        where: { ProfileId: dataProfile.id },
+      });
+
+      if (!dataExperience) throw { name: "NotFound" };
+
+      const dataEducation = await Education.findOne({
+        where: { ProfileId: dataProfile.id },
+      });
+
+      if (!dataEducation) throw { name: "NotFound" };
+
+      const prompt = `Generate cv markdown with this data; name:${dataProfile.fullName}, about me:${dataProfile.aboutMe},
+       gender:${dataProfile.gender}, phone number:${dataProfile.phoneNumber}, email:${dataUser.email}, experiences:${dataExperience.company},
+       positions:${dataExperience.position}, major:${dataEducation.Major}, education:${dataEducation.graduatedEducation}`;
+      const response = await openai.createCompletion({
+        model: "text-davinci-003",
+        prompt,
+        max_tokens: 1000
+      });
+
+      const dataCV = response.data.choices[0].text;
+
+      let file = md.render(dataCV)
+      
+      console.log(file, '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,,')
+      let options = { format: 'A4' };
+      let html = `<div style="font-family:sans-serif; margin:10mm"> ${file} </div>`
+
+      pdf.create(html, options).toFile('./CVGenerated.pdf', function(err, res) {
+        if (err) return console.log(err);
+        console.log(res)
+      });
+
+      res.status(200).json({ msg:"pdf has been generated!?" });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = UserController;
