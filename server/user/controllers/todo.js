@@ -15,6 +15,9 @@ class TodoController {
         res.status(401).json({message: "Invalid Token"})
       }
       const todos = await Todo.findAll(UserId);
+      if(!todos){
+        res.status(401).json({message: "todos not found"})
+      }
       res.status(200).json(todos);
     } catch (error) {
       next(error);
@@ -74,12 +77,8 @@ class TodoController {
         el.bookmarkId = new ObjectId(BookmarkId)
         return el
       })
-      
-      const { UserId } = req.user;
-      if(!UserId){
-        res.status(401).json({message: "Invalid Token"})
-      }
-      
+
+      console.log(todosdata)
       const todos = await Todo.bulkInsert(todosdata);
       res.status(201).json({message:"Success added data"});
     } catch (error) {
@@ -91,7 +90,7 @@ class TodoController {
     try {
       const { Id } = req.params;
       const todos = await Todo.destroyOne(Id);
-      res.status(200).json(todos);
+      res.status(200).json({message : "todo has been deleted"});
     } catch (error) {
       next(error);
     }
@@ -99,9 +98,10 @@ class TodoController {
 
     static async updateTodo(req, res, next) {
       try {
-        const { UserId } = req.user;
-        const todos = await Todo.findAll(UserId);
-        res.status(200).json(todos);
+        const { Id } = req.params;
+        const { status } = req.body;
+        const todos = await Todo.patch(Id, status);
+        res.status(200).json({message : "todo has been updated"});
       } catch (error) {
         next(error);
       }

@@ -42,7 +42,7 @@ router.put("/bookmarks", BookmarkController.updateBookmark);
 
 router.get("/todos", TodoController.getTodo);
 router.post("/todos/:BookmarkId", TodoController.createTodo);
-// router.put("/work-experience/:id", TodoController.updateWorkExperience);
-// router.delete("/work-experience/:id", TodoController.deleteWorkExperience);
+router.patch("/todos/:id", TodoController.updateTodo);
+router.delete("/todos/:id", TodoController.deleteTodo);
 
 module.exports = router;

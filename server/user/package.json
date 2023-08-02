@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "DATABASE_ATLAS='mongodb+srv://curiosityexp:ODe0kwpppHOWukGg@cluster0.u4gwvht.mongodb.net/?retryWrites=true&w=majority' jest --runInBand  --verbose --coverage"
+    "test": "jest --runInBand  --verbose --coverage"
   },
   "keywords": [],
   "author": "",
