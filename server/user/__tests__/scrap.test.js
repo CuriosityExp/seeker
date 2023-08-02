@@ -638,4 +638,9 @@ describe("TEST ENDPOINT /generatejobroles", ()=>{
       done(err)
     })
   })
+  test("404 Not Found generatejobroles should return Profile not found",(done)=>{
+    request(app)
+    .get("/generatejobroles")
+    .set("access_token",seederToken)
+  });
 })
