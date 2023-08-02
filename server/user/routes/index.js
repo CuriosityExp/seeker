@@ -3,6 +3,7 @@ const UserController = require("../controllers/userController");
 const BookmarkController = require("../controllers/bookmark");
 const JobController = require("../controllers/job");
 const authentication = require("../middlewares/authentication");
+const PostController = require("../controllers/postController");
 const TodoController = require("../controllers/todo");
 const router = express.Router();
 
@@ -40,6 +41,10 @@ router.get("/bookmarks", BookmarkController.readBookmark);
 router.post("/bookmarks", BookmarkController.createBookmark);
 router.delete("/bookmarks", BookmarkController.deleteBookmark);
 router.put("/bookmarks", BookmarkController.updateBookmark);
+
+router.get("/posts", PostController.allPost);
+router.post("/posts", PostController.createPost);
+router.delete("/pots", PostController.deletePost);
 
 router.get("/todos/:BookmarkId", TodoController.getTodo);
 router.post("/todos/:BookmarkId", TodoController.createTodo);
