@@ -97,6 +97,8 @@ const tester = {
   password: "test123",
 };
 
+let deletedId = null;
+
 beforeAll(async () => {
   try {
     await run("testDB");
@@ -108,12 +110,14 @@ beforeAll(async () => {
     const res = await User.create(tester);
     const job = await Job.create({ ...mockGlintsJob, ...mockDetail });
     const bookmark = await Bookmark.create({UserId: res.id, jobId: new ObjectId(job._id), customTitle: job.jobTitle })
-    const todo = await Todo.bulkInsert([{}])
+    const todo = await Todo.bulkInsert([{bookmarkId: bookmark._id, status: "false"}])
+    deletedId = todo.insertedIds[0]
+    console.log(deletedId)
     validToken = SignToken({ id: res.id });
   } catch (error) {
     console.log(error);
   }
-});
+}, 10000);
 
 beforeEach(() => {
   jest.restoreAllMocks();
@@ -164,6 +168,21 @@ describe("TEST ENDPOINT /todos GET", () => {
           done(err);
         });
       });
+      test("500 not found GET todos by BookmarkId", (done) => {
+        jest.spyOn(Todo,"findAll").mockRejectedValue("Internal Server Error")
+        request(app)
+        .get("/todos/64c9d1b776c3130bd3b23609")
+        .set("access_token", validToken)
+        .then((res) => {
+          const { body, status } = res;
+          expect(status).toBe(500);
+          expect(body).toHaveProperty("message", "Internal server error");
+          done();
+        })
+        .catch((err) => {
+          done(err);
+        });
+      });
     });
     
     describe("TEST ENDPOINT /todos POST", () => {
@@ -190,9 +209,10 @@ describe("TEST ENDPOINT /todos GET", () => {
           done(err);
         });
       }, 15000);
-      test("401 Not Found bookmark to POST todos", (done) => {
+      test("404 Not Found bookmark to POST todos", (done) => {
         request(app)
-          .post("todos/64c8bbc998946a16d609df87")
+          .post("/todos/64c8bbc998946a16d609df89")
+          .set("access_token", validToken)
           .then((res) => {
             const { body, status } = res;
             expect(status).toBe(404);
@@ -208,10 +228,10 @@ describe("TEST ENDPOINT /todos GET", () => {
   describe("TEST ENDPOINT /todos PUT", () => {
     test("200 Success UPDATE status in todos", (done) => {
       request(app) // ambil dari aapp
-        .put("/todos/1") // methood yang digunakan
+        .patch(`/todos/${deletedId}`) // methood yang digunakan
+        .send({ status: true })
         .set("access_token", validToken)
         .then((res) => {
-          console.log(res)
           const { body, status } = res;
           expect(status).toBe(200);
           expect(body).toHaveProperty("message", "todo has been updated");
@@ -223,10 +243,12 @@ describe("TEST ENDPOINT /todos GET", () => {
     });
     test("401 Not Found todo id to PUT todos should return todo not found ", (done) => {
         request(app)
-          .post("todos/1")
+          .patch("/todos/64c8bbc998946a16d609df89")
+          .send({ status: true })
+          .set("access_token", validToken)
           .then((res) => {
             const { body, status } = res;
-            expect(status).toBe(401);
+            expect(status).toBe(404);
             expect(body).toHaveProperty("message", "todo not found");
             done();
           })
@@ -239,10 +261,9 @@ describe("TEST ENDPOINT /todos GET", () => {
   describe("TEST ENDPOINT /todos DELETE", () => {
     test("200 Success DELETE todo in todos", (done) => {
       request(app) // ambil dari aapp
-        .put("/todos/1") // methood yang digunakan
+        .delete(`/todos/${deletedId}`) // methood yang digunakan
         .set("access_token", validToken)
         .then((res) => {
-          console.log(res)
           const { body, status } = res;
           expect(status).toBe(200);
           expect(body).toHaveProperty("message", "todo has been deleted");
@@ -254,10 +275,11 @@ describe("TEST ENDPOINT /todos GET", () => {
     });
     test("401 Not Found todo id to PUT todos should return todo not found ", (done) => {
         request(app)
-          .post("todos/1")
+          .delete(`/todos/64c8bbc998946a16d609df89`)
+          .set("access_token", validToken)
           .then((res) => {
             const { body, status } = res;
-            expect(status).toBe(401);
+            expect(status).toBe(404);
             expect(body).toHaveProperty("message", "todo not found");
             done();
           })
