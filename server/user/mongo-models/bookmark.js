@@ -83,6 +83,25 @@ class Bookmark {
     }
   }
 
+  static async patch(bookmarkId) {
+    try {
+      const bookmarkCollection = this.bookmarkCollection();
+      await bookmarkCollection.updateOne(
+        {
+          _id: new ObjectId(bookmarkId),
+        },
+        {
+          $set: { isPost: true },
+        }
+      );
+      return await bookmarkCollection.findOne({
+        _id: new ObjectId(bookmarkId),
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
   static async destroy(bookmarkId) {
     try {
       const bookmarkCollection = this.bookmarkCollection();
