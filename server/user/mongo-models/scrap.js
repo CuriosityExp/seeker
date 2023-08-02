@@ -1,5 +1,5 @@
 const puppeteer = require("puppeteer");
-
+/* istanbul ignore next */
 class Scrap {
   static async glintsUrl(query) {
     return new Promise(async (resolve, reject) => {

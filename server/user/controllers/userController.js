@@ -47,7 +47,6 @@ class UserController {
         return res.status(400).json({ message: `username/email is required` });
       }
     } catch (err) {
-      console.log(err, "<<<login");
       next(err);
     }
   }

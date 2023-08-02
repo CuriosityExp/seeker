@@ -46,7 +46,6 @@ class Job {
           _id: new ObjectId(newJob.insertedId),
         });
     } catch (error) {
-      console.log(error);
       throw error;
     }
   }

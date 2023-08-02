@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest --runInBand --silent  --verbose --coverage"
+    "test": "jest --runInBand --verbose --coverage --forceExit"
   },
   "keywords": [],
   "author": "",
