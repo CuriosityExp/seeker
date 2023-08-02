@@ -125,6 +125,16 @@ class BookmarkController {
       next(error);
     }
   }
+
+  static async updateShareBookmark(req,res,next){
+    try {
+      const { bookmarkId } = req.body;
+      const bookmark = await Bookmark.patch(bookmarkId)
+      res.status(200).json(bookmark)
+    } catch (error) {
+      next(error)
+    }
+  }
 }
 
 module.exports = BookmarkController;
