@@ -561,10 +561,11 @@ describe("TEST ENDPOINT /bookmarks DELETE", () => {
   test("404 Not Found DELETE Bookmarks by BookmarkId", (done) => {
     request(app)
       .delete("/bookmarks")
-      .send({ bookmarkId: "a123456789101" })
+      .send({ bookmarkId: "64c9cda9c87040fe7de026db" })
       .set("access_token", validToken)
       .then((res) => {
         const { body, status } = res;
+        console.log(body);
         expect(status).toBe(404);
         expect(body).toHaveProperty("message", "Bookmark not found");
         done();
@@ -605,7 +606,7 @@ describe("TEST ENDPOINT /bookmarks GET", () => {
   });
 });
 
-describe.only("TEST ENDPOINT /generatejobroles", ()=>{
+describe("TEST ENDPOINT /generatejobroles", ()=>{
   test("200 Success generatejobroles should return Object with key roles",(done)=>{
     jest.spyOn(openai, "createCompletion").mockResolvedValue(mockOpenAi);
     request(app)
@@ -622,5 +623,19 @@ describe.only("TEST ENDPOINT /generatejobroles", ()=>{
     .catch(err=>{
       done(err)
     })
-  },10000)
+  })
+  test("401 Unauthorized generatejobroles should return Invalid Token",(done)=>{
+    jest.spyOn(openai, "createCompletion").mockResolvedValue(mockOpenAi);
+    request(app)
+    .get("/generatejobroles")
+    .then((res)=>{
+      const {body, status} = res;
+      expect(status).toBe(401)
+      expect(body).toHaveProperty("message", "Invalid Token");
+      done()
+    })
+    .catch(err=>{
+      done(err)
+    })
+  })
 })
