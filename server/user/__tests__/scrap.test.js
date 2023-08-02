@@ -11,12 +11,25 @@ const { ObjectId } = require("mongodb");
 const openai = require("../config/openai");
 
 let validToken;
+let validTokenNoProfile;
+let validTokenBelumDiisi;
 const seederToken =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjkwOTU3MDQ4fQ.w-e_rsxnrONtgARGCWz8ytm-iTri5K8uXcEydOcoEVY";
 let bookmark;
 const tester = {
   username: "tester",
   email: "tester@mail.com",
+  password: "test123",
+};
+const testerNoProfile = {
+  username: "tester1",
+  email: "tester1@mail.com",
+  password: "test123",
+};
+
+const testerBelumDiisi = {
+  username: "tester2",
+  email: "tester2@mail.com",
   password: "test123",
 };
 
@@ -138,7 +151,18 @@ beforeAll(async () => {
       cascade: true,
     });
     const res = await User.create(tester);
-    const profile = await Profile.create({UserId: res.id})
+    const userBelumDiisi = await User.create(testerBelumDiisi);
+    const userNoProfile = await User.create(testerNoProfile);
+    await Profile.create({ UserId: userBelumDiisi.id });
+    const profileId = await Profile.create({ UserId: res.id });
+    const profile = await Profile.update(
+      { aboutMe: "Saya seorang lulusan bootcamp hactiv8" },
+      {
+        where: {
+          id: profileId.id,
+        },
+      }
+    );
     const job = await Job.create({ ...mockGlintsJob, ...mockDetail });
     bookmark = await Bookmark.create({
       UserId: res.id,
@@ -146,6 +170,8 @@ beforeAll(async () => {
       customTitle: job.jobTitle,
     });
     validToken = SignToken({ id: res.id });
+    validTokenNoProfile = SignToken({ id: userNoProfile.id });
+    validTokenBelumDiisi = SignToken({ id: userBelumDiisi.id });
   } catch (error) {
     console.log(error);
   }
@@ -606,41 +632,68 @@ describe("TEST ENDPOINT /bookmarks GET", () => {
   });
 });
 
-describe("TEST ENDPOINT /generatejobroles", ()=>{
-  test("200 Success generatejobroles should return Object with key roles",(done)=>{
+describe("TEST ENDPOINT /generatejobroles", () => {
+  test("200 Success generatejobroles should return Object with key roles", (done) => {
     jest.spyOn(openai, "createCompletion").mockResolvedValue(mockOpenAi);
     request(app)
-    .get("/generatejobroles")
-    .set("access_token", seederToken)
-    .then((res)=>{
-      const {body, status} = res;
-      console.log(body)
-      expect(status).toBe(200)
-      expect(body).toEqual(expect.any(Object))
-      expect(body).toHaveProperty("roles",expect.any(Array))
-      done()
-    })
-    .catch(err=>{
-      done(err)
-    })
-  })
-  test("401 Unauthorized generatejobroles should return Invalid Token",(done)=>{
-    jest.spyOn(openai, "createCompletion").mockResolvedValue(mockOpenAi);
-    request(app)
-    .get("/generatejobroles")
-    .then((res)=>{
-      const {body, status} = res;
-      expect(status).toBe(401)
-      expect(body).toHaveProperty("message", "Invalid Token");
-      done()
-    })
-    .catch(err=>{
-      done(err)
-    })
-  })
-  test("404 Not Found generatejobroles should return Profile not found",(done)=>{
-    request(app)
-    .get("/generatejobroles")
-    .set("access_token",seederToken)
+      .get("/generatejobroles")
+      .set("access_token", validToken)
+      .then((res) => {
+        const { body, status } = res;
+        console.log(body);
+        expect(status).toBe(200);
+        expect(body).toEqual(expect.any(Object));
+        expect(body).toHaveProperty("roles", expect.any(Array));
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
   });
-})
+  test("400 Bad Request generatejobroles should return Profile Data not enough to generate Job Roles", (done) => {
+    jest.spyOn(openai, "createCompletion").mockResolvedValue(mockOpenAi);
+    request(app)
+      .get("/generatejobroles")
+      .set("access_token", validTokenBelumDiisi)
+      .then((res) => {
+        const { body, status } = res;
+        expect(status).toBe(400);
+        expect(body).toHaveProperty(
+          "message",
+          "Profile Data not enough to generate Job Roles"
+        );
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+  });
+  test("401 Unauthorized generatejobroles should return Invalid Token", (done) => {
+    jest.spyOn(openai, "createCompletion").mockResolvedValue(mockOpenAi);
+    request(app)
+      .get("/generatejobroles")
+      .then((res) => {
+        const { body, status } = res;
+        expect(status).toBe(401);
+        expect(body).toHaveProperty("message", "Invalid Token");
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+  });
+  test("404 Not Found generatejobroles should return Profile not found", (done) => {
+    request(app)
+      .get("/generatejobroles")
+      .set("access_token", validTokenNoProfile)
+      .then((res) => {
+        const { body, status } = res;
+        expect(status).toBe(404);
+        expect(body).toHaveProperty("message", "Profile not found");
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+  });
+});

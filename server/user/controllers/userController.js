@@ -378,7 +378,7 @@ class UserController {
           UserId: req.user.id,
         },
       });
-      console.log (profile)
+      // console.log (profile)
       await WorkExperience.create({
         company,
         position,
