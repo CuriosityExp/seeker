@@ -6,34 +6,15 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 class Generator {
-  static async generateTodo(profile) {
+  static async generateJobRecommend(profile) {
     try {
-      if (!profile) {
-        throw new Error("Uh oh, no profile was provided");
-      }
-      const prompt = `
-      from this job vacancy detail create to do list in JSON stringify format . Here is the data:
-      ${profile}
-      `;
-      const response = await openai.createCompletion({
-        model: "text-davinci-003",
-        prompt,
-        max_tokens: 1000,
-      });
-      const completion = response.data.choices[0].text;
-      const todos = JSON.parse(completion);
-      return todos;
+      const prompt = `Berikan rekomendasi pekerjaan untuk saya. Batasi 3 rekomendasi pekerjaan saja
+      dan buat dalam format JSON. Berikut data diri saya:
+      ${profile}`
     } catch (error) {
-      next(error);
+      console.log(error)
+      throw error
     }
-  }
-
-  static async generateParams(profile) {
-    try {
-      if (!profile) {
-        throw new Error("Uh oh, no profile was provided");
-      }
-    } catch (error) {}
   }
 }
 

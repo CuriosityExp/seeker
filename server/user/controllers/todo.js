@@ -3,18 +3,15 @@ const Bookmark = require("../mongo-models/bookmark");
 const { ObjectId } = require("mongodb");
 const { Configuration, OpenAIApi } = require("openai");
 const configuration = new Configuration({
-  apiKey: "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",
+  apiKey: process.env.OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(configuration);
 
 class TodoController {
   static async getTodo(req, res, next) {
     try {
-      const { UserId } = req.user;
-      if(!UserId){
-        res.status(401).json({message: "Invalid Token"})
-      }
-      const todos = await Todo.findAll(UserId);
+      const {BookmarkId} = req.params
+      const todos = await Todo.findAll(BookmarkId);
       if(!todos){
         res.status(401).json({message: "todos not found"})
       }
@@ -50,17 +47,16 @@ class TodoController {
       console.log(data)
       
       const prompt = `
-      berikan todo list yang hanya mengembalikan array of objects tanpa tambahan text apapun selain array tersebut, tentang hal yang harus dilakukan sebelum melamar pekerjaan ${data[0].Job.jobTitle} sebanyak 10 to do list berdasarkan ${data[0].Job.jobDesc}, dengan properti
+      berikan 10 todo list yang cukup spesifik dengan bahasa Indonesia dalam JSON format (Array Of Object) untuk melamar pekerjaan dengan minimum skill seperti ini ${JSON.stringify(data[0].Job[0].minimumSkills)}
 
       [
         {
           "task":
         }
       ]
-      
-      jangan isi apapun di dalam array ataupun objects
+      masukkan todo list ke dalam template "task" dan bungkus dengan array 
       `;
-      
+      console.log(prompt, "<<<")
       const response = await openai.createCompletion({
         model: "text-davinci-003",
         prompt,
@@ -69,6 +65,7 @@ class TodoController {
       
       const completion = response.data.choices[0].text;
       console.log(completion);
+
       let todosdata = JSON.parse(completion);
       console.log(todosdata)
       
