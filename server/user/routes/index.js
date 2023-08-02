@@ -35,6 +35,7 @@ router.delete("/work-experience/:id", UserController.deleteWorkExperience);
 router.post("/fetchjobskalibrr", JobController.fetchJobs);
 router.post("/fetchjobsglints", JobController.fetchJobGlints);
 router.post("/fetchjobskarir", JobController.fetchJobKarir);
+router.get("/generatejobroles", JobController.generateRoles)
 router.get("/bookmarks", BookmarkController.readBookmark);
 router.post("/bookmarks", BookmarkController.createBookmark);
 router.delete("/bookmarks", BookmarkController.deleteBookmark);

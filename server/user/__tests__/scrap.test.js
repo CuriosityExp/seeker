@@ -1,6 +1,6 @@
 const app = require("../app");
 const request = require("supertest");
-const { User } = require("../models");
+const { User, Profile } = require("../models");
 const { SignToken } = require("../helpers/jwt");
 const Scrap = require("../mongo-models/scrap");
 const Job = require("../mongo-models/job");
@@ -8,12 +8,58 @@ const Bookmark = require("../mongo-models/bookmark");
 const { run, client, getDb } = require("../config/mongo");
 const { ObjectId } = require("mongodb");
 
+const openai = require("../config/openai");
+
 let validToken;
+const seederToken =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjkwOTU3MDQ4fQ.w-e_rsxnrONtgARGCWz8ytm-iTri5K8uXcEydOcoEVY";
 let bookmark;
 const tester = {
   username: "tester",
   email: "tester@mail.com",
   password: "test123",
+};
+
+const mockOpenAi = {
+  data: {
+    warning:
+      "This model version is deprecated. Migrate before January 4, 2024 to avoid disruption of service. Learn more https://platform.openai.com/docs/deprecations",
+
+    id: "cmpl-7j041Bbvd9T6JUn0j0eZIONfSY5Iw",
+
+    object: "text_completion",
+
+    created: 1690959361,
+
+    model: "text-davinci-003",
+
+    choices: [
+      {
+        text:
+          "\n" +
+          "\n" +
+          "[\n" +
+          "    {\n" +
+          '        "jobRoles": "Software Developer"\n' +
+          "    },\n" +
+          "    {\n" +
+          '        "jobRoles": "Web Developer"\n' +
+          "    },\n" +
+          "    {\n" +
+          '        "jobRoles": "Data Scientist"\n' +
+          "    }\n" +
+          "]",
+
+        index: 0,
+
+        logprobs: null,
+
+        finish_reason: "stop",
+      },
+    ],
+
+    usage: { prompt_tokens: 54, completion_tokens: 56, total_tokens: 110 },
+  },
 };
 
 const mockJobs = [
@@ -92,6 +138,7 @@ beforeAll(async () => {
       cascade: true,
     });
     const res = await User.create(tester);
+    const profile = await Profile.create({UserId: res.id})
     const job = await Job.create({ ...mockGlintsJob, ...mockDetail });
     bookmark = await Bookmark.create({
       UserId: res.id,
@@ -512,13 +559,13 @@ describe("TEST ENDPOINT /bookmarks DELETE", () => {
       });
   });
   test("404 Not Found DELETE Bookmarks by BookmarkId", (done) => {
-    Bookmark.findByPk = jest.fn().mockResolvedValue(undefined);
     request(app)
       .delete("/bookmarks")
-      .send({ bookmarkId: "a123456789101" })
+      .send({ bookmarkId: "64c9cda9c87040fe7de026db" })
       .set("access_token", validToken)
       .then((res) => {
         const { body, status } = res;
+        console.log(body);
         expect(status).toBe(404);
         expect(body).toHaveProperty("message", "Bookmark not found");
         done();
@@ -558,3 +605,42 @@ describe("TEST ENDPOINT /bookmarks GET", () => {
       });
   });
 });
+
+describe("TEST ENDPOINT /generatejobroles", ()=>{
+  test("200 Success generatejobroles should return Object with key roles",(done)=>{
+    jest.spyOn(openai, "createCompletion").mockResolvedValue(mockOpenAi);
+    request(app)
+    .get("/generatejobroles")
+    .set("access_token", seederToken)
+    .then((res)=>{
+      const {body, status} = res;
+      console.log(body)
+      expect(status).toBe(200)
+      expect(body).toEqual(expect.any(Object))
+      expect(body).toHaveProperty("roles",expect.any(Array))
+      done()
+    })
+    .catch(err=>{
+      done(err)
+    })
+  })
+  test("401 Unauthorized generatejobroles should return Invalid Token",(done)=>{
+    jest.spyOn(openai, "createCompletion").mockResolvedValue(mockOpenAi);
+    request(app)
+    .get("/generatejobroles")
+    .then((res)=>{
+      const {body, status} = res;
+      expect(status).toBe(401)
+      expect(body).toHaveProperty("message", "Invalid Token");
+      done()
+    })
+    .catch(err=>{
+      done(err)
+    })
+  })
+  test("404 Not Found generatejobroles should return Profile not found",(done)=>{
+    request(app)
+    .get("/generatejobroles")
+    .set("access_token",seederToken)
+  });
+})

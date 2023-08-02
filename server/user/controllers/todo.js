@@ -44,17 +44,13 @@ class TodoController {
       }
       
       const prompt = `
-      berikan todo list yang hanya mengembalikan array of objects tanpa tambahan text apapun selain array tersebut, tentang hal yang harus dilakukan sebelum melamar pekerjaan ${data[0].Job.jobTitle} sebanyak 10 to do list berdasarkan ${data[0].Job.jobDesc}, dengan properti
-
-      [
-        {
-          "task":
-        }
-      ]
-      
-      jangan isi apapun di dalam array ataupun objects
+      saya adalah pencari kerja, dan belum mendapatkan pekerjaan, buatkan 10 todo list dalam bahasa Indonesia, agar bisa diterima kerja sebagai ${data[0].Job[0].jobTitle} di perusahaan ${data[0].Job[0].companyName} dengan deskripsi lowongan sebagai berikut:
+      Minimum skills
+        ${data[0].Job[0].minimumSkills}
+      Buat dengan format array of object dengan contoh sebagai berikut:
+[ { "task": "todo list 1"}, { "task": "todo list 2} ]
       `;
-      
+      console.log(prompt, "<<<")
       const response = await openai.createCompletion({
         model: "text-davinci-003",
         prompt,
@@ -73,7 +69,7 @@ class TodoController {
       })
 
       const todos = await Todo.bulkInsert(todosdata);
-      res.status(201).json({message:"Success added data"});
+      res.status(201).json({message:"Success added data", todosdata});
     } catch (error) {
       console.log(error)
       next(error);

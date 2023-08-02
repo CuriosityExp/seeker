@@ -118,7 +118,8 @@ class BookmarkController {
         };
       }
       const bookmark = await Bookmark.findByPk(bookmarkId);
-      if (!bookmark) {
+      console.log(bookmark)
+      if (bookmark.length === 0) {
         throw {
           name: "CustomError",
           status: 404,

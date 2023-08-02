@@ -372,13 +372,13 @@ class UserController {
   static async createWorkExperience(req, res, next) {
     try {
       const { company, position, type, startWork, stopWork } = req.body;
-
+      console.log(req.user.id)
       const profile = await Profile.findOne({
         where: {
           UserId: req.user.id,
         },
       });
-
+      console.log (profile)
       await WorkExperience.create({
         company,
         position,
