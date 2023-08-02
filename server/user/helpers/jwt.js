@@ -1,5 +1,5 @@
 var jwt = require("jsonwebtoken");
-const JWT_SECRET = process.env.JWT_SECRET || "FinalProject";
+const JWT_SECRET = process.env.JWT_SECRET;
 console.log(JWT_SECRET)
 // var token = jwt.sign({ name: 'Dony Canra' }, JWT_SECRET);
 

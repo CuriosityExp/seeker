@@ -316,7 +316,7 @@ describe("Users", function () {
     test("GET /people success by id params with access token", async function () {
       const response = await request(app).get("/people/1").set("access_token", access_token);
       expect(response.status).toEqual(200);
-      console.log(response.body);
+      // console.log(response.body);
       expect(typeof response.body).toEqual("object");
       expect(response.body).toHaveProperty("id");
       expect(response.body).toHaveProperty("fullName");

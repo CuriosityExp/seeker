@@ -1,23 +1,78 @@
 const app = require("../app");
 const request = require("supertest");
-const { User } = require("../models");
+const { User, Profile } = require("../models");
 const { SignToken } = require("../helpers/jwt");
-const { sequelize } = require("../models");
 const Scrap = require("../mongo-models/scrap");
 const Job = require("../mongo-models/job");
 const Bookmark = require("../mongo-models/bookmark");
-const { queryInterface } = sequelize;
 const { run, client, getDb } = require("../config/mongo");
 const { ObjectId } = require("mongodb");
-const Test = require("../mongo-models/test");
 
+const openai = require("../config/openai");
 
 let validToken;
+let validTokenNoProfile;
+let validTokenBelumDiisi;
+const seederToken =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjkwOTU3MDQ4fQ.w-e_rsxnrONtgARGCWz8ytm-iTri5K8uXcEydOcoEVY";
 let bookmark;
 const tester = {
   username: "tester",
   email: "tester@mail.com",
   password: "test123",
+};
+const testerNoProfile = {
+  username: "tester1",
+  email: "tester1@mail.com",
+  password: "test123",
+};
+
+const testerBelumDiisi = {
+  username: "tester2",
+  email: "tester2@mail.com",
+  password: "test123",
+};
+
+const mockOpenAi = {
+  data: {
+    warning:
+      "This model version is deprecated. Migrate before January 4, 2024 to avoid disruption of service. Learn more https://platform.openai.com/docs/deprecations",
+
+    id: "cmpl-7j041Bbvd9T6JUn0j0eZIONfSY5Iw",
+
+    object: "text_completion",
+
+    created: 1690959361,
+
+    model: "text-davinci-003",
+
+    choices: [
+      {
+        text:
+          "\n" +
+          "\n" +
+          "[\n" +
+          "    {\n" +
+          '        "jobRoles": "Software Developer"\n' +
+          "    },\n" +
+          "    {\n" +
+          '        "jobRoles": "Web Developer"\n' +
+          "    },\n" +
+          "    {\n" +
+          '        "jobRoles": "Data Scientist"\n' +
+          "    }\n" +
+          "]",
+
+        index: 0,
+
+        logprobs: null,
+
+        finish_reason: "stop",
+      },
+    ],
+
+    usage: { prompt_tokens: 54, completion_tokens: 56, total_tokens: 110 },
+  },
 };
 
 const mockJobs = [
@@ -96,9 +151,27 @@ beforeAll(async () => {
       cascade: true,
     });
     const res = await User.create(tester);
+    const userBelumDiisi = await User.create(testerBelumDiisi);
+    const userNoProfile = await User.create(testerNoProfile);
+    await Profile.create({ UserId: userBelumDiisi.id });
+    const profileId = await Profile.create({ UserId: res.id });
+    const profile = await Profile.update(
+      { aboutMe: "Saya seorang lulusan bootcamp hactiv8" },
+      {
+        where: {
+          id: profileId.id,
+        },
+      }
+    );
     const job = await Job.create({ ...mockGlintsJob, ...mockDetail });
-    bookmark = await Bookmark.create({UserId: res.id, jobId: new ObjectId(job._id), customTitle: job.jobTitle })
+    bookmark = await Bookmark.create({
+      UserId: res.id,
+      jobId: new ObjectId(job._id),
+      customTitle: job.jobTitle,
+    });
     validToken = SignToken({ id: res.id });
+    validTokenNoProfile = SignToken({ id: userNoProfile.id });
+    validTokenBelumDiisi = SignToken({ id: userBelumDiisi.id });
   } catch (error) {
     console.log(error);
   }
@@ -110,7 +183,7 @@ beforeEach(() => {
 
 afterAll(async () => {
   try {
-    await getDb().dropDatabase("testDB")
+    await getDb().dropDatabase("testDB");
     await client.close();
     await User.destroy({
       restartIdentity: true,
@@ -122,23 +195,10 @@ afterAll(async () => {
   }
 });
 
-describe.only("test class", ()=>{
-  test("test success", (done)=>{
-     jest.spyOn(Scrap,"kalibrrUrl").mockResolvedValue(mockJobs);
-    Test.getUsers().then(data=>{
-      console.log(data)
-      done()
-    }).catch(err=> {
-      console.log(err)
-      done(err)
-    })
-  })
-})
-
 describe("/fetchjobs manual with query and 3 job portal", () => {
   test("200 Success Fetch kalibrr should return array of object", (done) => {
     // Scrap.kalibrrUrl = jest.fn().mockResolvedValue(mockJobs);
-     jest.spyOn(Scrap,"kalibrrUrl").mockResolvedValue(mockJobs);
+    jest.spyOn(Scrap, "kalibrrUrl").mockResolvedValue(mockJobs);
     request(app)
       .post("/fetchjobskalibrr")
       .send({ query: "frontend" })
@@ -155,7 +215,7 @@ describe("/fetchjobs manual with query and 3 job portal", () => {
       });
   });
   test("200 Success Fetch karir should return array of object", (done) => {
-     jest.spyOn(Scrap, "karirUrl").mockResolvedValue(mockJobs);
+    jest.spyOn(Scrap, "karirUrl").mockResolvedValue(mockJobs);
     request(app)
       .post("/fetchjobskarir")
       .send({ query: "frontend" })
@@ -172,7 +232,7 @@ describe("/fetchjobs manual with query and 3 job portal", () => {
       });
   });
   test("200 Success Fetch glints should return array of object", (done) => {
-     jest.spyOn(Scrap, "glintsUrl").mockResolvedValue(mockJobs);
+    jest.spyOn(Scrap, "glintsUrl").mockResolvedValue(mockJobs);
     request(app)
       .post("/fetchjobsglints")
       .send({ query: "frontend" })
@@ -219,7 +279,6 @@ describe("/fetchjobs manual with query and 3 job portal", () => {
       });
   });
   test("401 Error Fetch karir should return message Invalid Token", (done) => {
-
     request(app)
       .post("/fetchjobskarir")
       .send({ query: "frontend" })
@@ -235,7 +294,7 @@ describe("/fetchjobs manual with query and 3 job portal", () => {
       });
   });
   test("500 Error Fetch glints should return array of object", (done) => {
-     jest.spyOn(Scrap, "glintsUrl").mockRejectedValue(mockJobs);
+    jest.spyOn(Scrap, "glintsUrl").mockRejectedValue(mockJobs);
     request(app)
       .post("/fetchjobsglints")
       .send({ query: "frontend" })
@@ -252,7 +311,7 @@ describe("/fetchjobs manual with query and 3 job portal", () => {
       });
   });
   test("500 Error Fetch kalibrr should return array of object", (done) => {
-     jest.spyOn(Scrap, "kalibrrUrl").mockRejectedValue(mockJobs);
+    jest.spyOn(Scrap, "kalibrrUrl").mockRejectedValue(mockJobs);
     request(app)
       .post("/fetchjobskalibrr")
       .send({ query: "frontend" })
@@ -269,7 +328,7 @@ describe("/fetchjobs manual with query and 3 job portal", () => {
       });
   });
   test("500 Error Fetch karir should return array of object", (done) => {
-     jest.spyOn(Scrap, "karirUrl").mockRejectedValue(mockJobs);
+    jest.spyOn(Scrap, "karirUrl").mockRejectedValue(mockJobs);
     request(app)
       .post("/fetchjobskarir")
       .send({ query: "frontend" })
@@ -393,7 +452,7 @@ describe("TEST ENDPOINT /bookmarks UPDATE", () => {
       .send({ bookmarkId: bookmark._id, customTitle: "Test Custom Baru" })
       .set("access_token", validToken)
       .then((res) => {
-        console.log(res)
+        console.log(res);
         const { body, status } = res;
         expect(status).toBe(200);
         expect(body).toHaveProperty("message", "Success update bookmark title");
@@ -484,16 +543,9 @@ describe("TEST ENDPOINT /bookmarks UPDATE", () => {
 
 describe("TEST ENDPOINT /bookmarks DELETE", () => {
   test("200 Success DELETE Bookmarks by BookmarkId", (done) => {
-    Bookmark.findByPk = jest.fn().mockResolvedValue({
-      _id: "Test Bookmark Id",
-      UserId: 1,
-      jobId: "Test Job Id",
-      customTitle: "Test Title lama",
-    });
-    Bookmark.destroy = jest.fn().mockResolvedValue("OK");
     request(app)
       .delete("/bookmarks")
-      .send({ bookmarkId: "Test Bookmark Id" })
+      .send({ bookmarkId: bookmark._id })
       .set("access_token", validToken)
       .then((res) => {
         const { body, status } = res;
@@ -519,7 +571,7 @@ describe("TEST ENDPOINT /bookmarks DELETE", () => {
         done(err);
       });
   });
-  test("401 Bad Request DELETE Bookmarks by BookmarkId", (done) => {
+  test("401 Unauthorized DELETE Bookmarks by BookmarkId", (done) => {
     request(app)
       .delete("/bookmarks")
       .then((res) => {
@@ -533,13 +585,13 @@ describe("TEST ENDPOINT /bookmarks DELETE", () => {
       });
   });
   test("404 Not Found DELETE Bookmarks by BookmarkId", (done) => {
-    Bookmark.findByPk = jest.fn().mockResolvedValue(undefined);
     request(app)
       .delete("/bookmarks")
-      .send({ bookmarkId: "Test Bookmark Id" })
+      .send({ bookmarkId: "64c9cda9c87040fe7de026db" })
       .set("access_token", validToken)
       .then((res) => {
         const { body, status } = res;
+        console.log(body);
         expect(status).toBe(404);
         expect(body).toHaveProperty("message", "Bookmark not found");
         done();
@@ -552,11 +604,6 @@ describe("TEST ENDPOINT /bookmarks DELETE", () => {
 
 describe("TEST ENDPOINT /bookmarks GET", () => {
   test("200 Success GET Bookmarks by UserId", (done) => {
-    Bookmark.findAll = jest
-      .fn()
-      .mockResolvedValue([
-        { _id: "Bookmark Id", jobId: "Job Id", UserId: "User id" },
-      ]);
     request(app)
       .get("/bookmarks")
       .set("access_token", validToken)
@@ -570,7 +617,7 @@ describe("TEST ENDPOINT /bookmarks GET", () => {
         console.log(err);
       });
   });
-  test("401 Success GET Bookmarks by UserId", (done) => {
+  test("401 Unauthorized GET Bookmarks by UserId", (done) => {
     request(app)
       .get("/bookmarks")
       .then((res) => {
@@ -581,6 +628,72 @@ describe("TEST ENDPOINT /bookmarks GET", () => {
       })
       .catch((err) => {
         console.log(err);
+      });
+  });
+});
+
+describe("TEST ENDPOINT /generatejobroles", () => {
+  test("200 Success generatejobroles should return Object with key roles", (done) => {
+    jest.spyOn(openai, "createCompletion").mockResolvedValue(mockOpenAi);
+    request(app)
+      .get("/generatejobroles")
+      .set("access_token", validToken)
+      .then((res) => {
+        const { body, status } = res;
+        console.log(body);
+        expect(status).toBe(200);
+        expect(body).toEqual(expect.any(Object));
+        expect(body).toHaveProperty("roles", expect.any(Array));
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+  });
+  test("400 Bad Request generatejobroles should return Profile Data not enough to generate Job Roles", (done) => {
+    jest.spyOn(openai, "createCompletion").mockResolvedValue(mockOpenAi);
+    request(app)
+      .get("/generatejobroles")
+      .set("access_token", validTokenBelumDiisi)
+      .then((res) => {
+        const { body, status } = res;
+        expect(status).toBe(400);
+        expect(body).toHaveProperty(
+          "message",
+          "Profile Data not enough to generate Job Roles"
+        );
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+  });
+  test("401 Unauthorized generatejobroles should return Invalid Token", (done) => {
+    jest.spyOn(openai, "createCompletion").mockResolvedValue(mockOpenAi);
+    request(app)
+      .get("/generatejobroles")
+      .then((res) => {
+        const { body, status } = res;
+        expect(status).toBe(401);
+        expect(body).toHaveProperty("message", "Invalid Token");
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+  });
+  test("404 Not Found generatejobroles should return Profile not found", (done) => {
+    request(app)
+      .get("/generatejobroles")
+      .set("access_token", validTokenNoProfile)
+      .then((res) => {
+        const { body, status } = res;
+        expect(status).toBe(404);
+        expect(body).toHaveProperty("message", "Profile not found");
+        done();
+      })
+      .catch((err) => {
+        done(err);
       });
   });
 });

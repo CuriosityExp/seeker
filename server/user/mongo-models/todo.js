@@ -1,42 +1,42 @@
-const { getDb } = require("../config/config");
+const { getDb } = require("../config/mongo");
 const { ObjectId } = require("mongodb");
 
 class TodoList {
   static todoCollection() {
     return getDb().collection("todos");
   }
-  static async findAll() {
+  static async findAll(bookmarkId) {
     const todoCollection = this.todoCollection();
-    return await todoCollection.find().toArray();
-  }
-
-  static async findByPk(todoId) {
-    const todoCollection = this.todoCollection();
-    return await todoCollection.findOne({
-      _id: new ObjectId(todoId),
-    });
+    return await todoCollection.aggregate([
+      {$match:{
+        bookmarkId: new ObjectId(bookmarkId)
+      }}
+    ]).toArray();
   }
 
   static async bulkInsert(todos) {
-    try {
       const todoCollection = this.todoCollection();
       const list = await todoCollection.insertMany(todos);
       return list;
-    } catch (error) {
-      throw error;
-    }
   }
 
-  static async destroy(bookmarkId) {
-    try {
+  static async destroyOne(Id) {
       const todoCollection = this.todoCollection();
-      return await todoCollection.deleteMany({
-        bookmarkId: new ObjectId(bookmarkId),
+      return await todoCollection.deleteOne({
+        _id: new ObjectId(Id),
       });
-    } catch (error) {
-      throw error;
-    }
+  }
+
+  static async patch(Id, data) {
+      const todoCollection = this.todoCollection();
+      return await todoCollection.updateOne(
+        {
+          _id: new ObjectId(Id),
+        },
+        {
+          $set: { status: data },
+        }
+      );
   }
 }
-
 module.exports = TodoList
