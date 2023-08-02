@@ -8,6 +8,7 @@ const Bookmark = require("../mongo-models/bookmark");
 const { run, client, getDb } = require("../config/mongo");
 const { ObjectId } = require("mongodb");
 
+const openai = require("../config/openai");
 
 let validToken;
 const seederToken =
@@ -558,7 +559,6 @@ describe("TEST ENDPOINT /bookmarks DELETE", () => {
       });
   });
   test("404 Not Found DELETE Bookmarks by BookmarkId", (done) => {
-    Bookmark.findByPk = jest.fn().mockResolvedValue(undefined);
     request(app)
       .delete("/bookmarks")
       .send({ bookmarkId: "a123456789101" })
@@ -607,6 +607,7 @@ describe("TEST ENDPOINT /bookmarks GET", () => {
 
 describe.only("TEST ENDPOINT /generatejobroles", ()=>{
   test("200 Success generatejobroles should return Object with key roles",(done)=>{
+    jest.spyOn(openai, "createCompletion").mockResolvedValue(mockOpenAi);
     request(app)
     .get("/generatejobroles")
     .set("access_token", seederToken)

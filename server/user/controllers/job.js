@@ -1,11 +1,7 @@
 const Scrap = require("../mongo-models/scrap");
-const { Configuration, OpenAIApi } = require("openai");
 const { Profile, WorkExperience, Education } = require("../models");
+const openai = require("../config/openai");
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
 
 class JobController {
   static async fetchJobs(req, res, next) {
