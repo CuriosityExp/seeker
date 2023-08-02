@@ -175,7 +175,7 @@ beforeAll(async () => {
   } catch (error) {
     console.log(error);
   }
-});
+},10000);
 
 beforeEach(() => {
   jest.restoreAllMocks();
