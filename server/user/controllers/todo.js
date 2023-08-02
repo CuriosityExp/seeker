@@ -40,7 +40,7 @@ class TodoController {
       const data = await Bookmark.findByPk(BookmarkId);
       
       if(data.length === 0){
-        res.status(404).json({message: "data not found"})
+        res.status(404).json({message: "bookmark not found"})
       }
       
       const prompt = `
@@ -82,23 +82,27 @@ class TodoController {
   
   static async deleteTodo(req, res, next) {
     try {
-      const { Id } = req.params;
-      const todos = await Todo.destroyOne(Id);
-      if(!todos) {
+      const { id } = req.params;
+      const todos = await Todo.destroyOne(id);
+      console.log(todos, "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+      if(todos.deletedCount === 0) {
         res.status(404).json({message : "todo not found"});
       }
       res.status(200).json({message : "todo has been deleted"});
     } catch (error) {
+      console.log(error, "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,")
       next(error);
     }
   }
 
     static async updateTodo(req, res, next) {
       try {
-        const { Id } = req.params;
+        const { id } = req.params;
         const { status } = req.body;
-        const todos = await Todo.patch(Id, status);
-        if(!todos) {
+        console.log(status, "/////////////////////////////////////////////")
+        const todos = await Todo.patch(id, status);
+        console.log(todos)
+        if(todos.matchedCount === 0) {
           res.status(404).json({message : "todo not found"});
         }
         res.status(200).json({message : "todo has been updated"});
