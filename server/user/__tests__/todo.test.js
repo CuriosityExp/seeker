@@ -166,8 +166,8 @@ describe("TEST ENDPOINT /todos GET", () => {
       });
     });
     
-    describe.only("TEST ENDPOINT /todos POST", () => {
-      test.only("201 Success POST to database todos", (done) => {
+    describe("TEST ENDPOINT /todos POST", () => {
+      test("201 Success POST to database todos", (done) => {
         jest.spyOn(openai, 'createCompletion').mockResolvedValue({data:{choices:[{text:`[
           {"task":"go to a boot camp"},
           {"task":"make a cv"}

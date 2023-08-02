@@ -50,27 +50,21 @@ class JobController {
         where: { ProfileId: dataProfile.id },
       });
 
-      if (!dataExperience)
-        throw {
-          name: "CustomError",
-          status: 404,
-          message: "Work Experience not found",
-        };
 
       const dataEducation = await Education.findAll({
         where: { ProfileId: dataProfile.id },
       });
-
-      if (!dataEducation)
+      console.log(dataExperience,dataEducation,dataProfile.aboutMe)
+      if (
+        dataEducation.length === 0 &&
+        dataExperience.length === 0 &&
+        dataProfile.aboutMe === "Belum di isi"
+      ) {
         throw {
           name: "CustomError",
-          status: 404,
-          message: "Education background not found",
+          status: 400,
+          message: "Profile Data not enough to generate Job Roles",
         };
-      if (dataEducation.length === 0 && dataExperience.length === 0 && !dataProfile.aboutMe) {
-        throw {
-          name: "CustomError", status: 400 ,message: "Profile Data not enough to generate Job Roles"
-        }
       }
       const pastWork = dataExperience.map((el) => {
         return `my work experiences, i was working at ${el.company} from years ${el.startWork} untill ${el.stopWork}, my role was ${el.position} and i was a ${el.type} worker`;
