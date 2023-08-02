@@ -7,27 +7,19 @@ class BookmarkController {
     try {
       const { id: UserId } = req.user;
       // console.log(UserId, "ini User Id")
-      const {
-        url,
-        logo,
-        jobTitle,
-        companyName,
-        companyLocation,
-        salary,
-        workExperience,
-      } = req.body
+      const { url, logo, jobTitle, companyName, companyLocation, salary, workExperience } = req.body;
       let detail;
       if (url.includes("kalibrr")) {
         // console.log("kalibrr")
-        detail = await Scrap.kalibrrDetail(url)
+        detail = await Scrap.kalibrrDetail(url);
       }
       if (url.includes("karir")) {
         // console.log("karir")
-        detail = await Scrap.karirDetail(url)
+        detail = await Scrap.karirDetail(url);
       }
       if (url.includes("glints")) {
         // console.log("glints")
-        detail = await Scrap.glintsDetail(url)
+        detail = await Scrap.glintsDetail(url);
       }
       // console.log(detail)
       const jobDetail = await Job.create({
@@ -42,7 +34,7 @@ class BookmarkController {
         minimumSkills: detail.minimumSkills,
       });
       // console.log(jobDetail)
-      const jobId = jobDetail._id
+      const jobId = jobDetail._id;
       if (!UserId) {
         throw { name: "CustomError", status: 400, message: "UserId required" };
       }
@@ -60,7 +52,7 @@ class BookmarkController {
       });
       res.status(201).json(bookmark);
     } catch (error) {
-      console.log(error)
+      console.log(error);
       next(error);
     }
   }
@@ -102,7 +94,7 @@ class BookmarkController {
       }
       res.status(200).json({ message: "Success update bookmark title" });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       next(error);
     }
   }

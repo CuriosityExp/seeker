@@ -24,3 +24,11 @@ npx sequelize db:seed:all
 
 MIDTRANS_CLIENT_KEY="SB-Mid-client-iTL80yb77QXBazq4"
 
+post {
+    _id
+    title
+    description
+    BookmarkId
+    UserId
+}
+
