@@ -4,12 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest --runInBand --verbose --coverage --forceExit"
+    "test": "jest --runInBand --verbose --coverage --forceExit --testPathPattern --no-cache"
   },
   "keywords": [],
   "author": "",
   "jest": {
-    "collectCoverage": true
+    "collectCoverage": true,
+    "testPathIgnorePatterns": [
+      "mongo-models/scrap.js"
+    ]
   },
   "license": "ISC",
   "dependencies": {
