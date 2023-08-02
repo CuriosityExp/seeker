@@ -13,7 +13,7 @@ class TodoController {
       const {BookmarkId} = req.params
       const todos = await Todo.findAll(BookmarkId);
       if(!todos){
-        res.status(401).json({message: "todos not found"})
+        res.status(404).json({message: "todos not found"})
       }
       res.status(200).json(todos);
     } catch (error) {
@@ -47,14 +47,11 @@ class TodoController {
       console.log(data)
       
       const prompt = `
-      berikan 10 todo list yang cukup spesifik dengan bahasa Indonesia dalam JSON format (Array Of Object) untuk melamar pekerjaan dengan minimum skill seperti ini ${JSON.stringify(data[0].Job[0].minimumSkills)}
-
-      [
-        {
-          "task":
-        }
-      ]
-      masukkan todo list ke dalam template "task" dan bungkus dengan array 
+      saya adalah pencari kerja, dan belum mendapatkan pekerjaan, buatkan 10 todo list dalam bahasa Indonesia, agar bisa diterima kerja sebagai ${data[0].Job[0].jobTitle} di perusahaan ${data[0].Job[0].companyName} dengan deskripsi lowongan sebagai berikut:
+      Minimum skills
+        ${data[0].Job[0].minimumSkills}
+      Buat dengan format array of object dengan contoh sebagai berikut:
+[ { "task": "todo list 1"}, { "task": "todo list 2} ]
       `;
       console.log(prompt, "<<<")
       const response = await openai.createCompletion({
@@ -77,7 +74,7 @@ class TodoController {
 
       console.log(todosdata)
       const todos = await Todo.bulkInsert(todosdata);
-      res.status(201).json({message:"Success added data"});
+      res.status(201).json({message:"Success added data", todosdata});
     } catch (error) {
       next(error);
     }
