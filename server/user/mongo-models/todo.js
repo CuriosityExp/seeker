@@ -5,9 +5,13 @@ class TodoList {
   static todoCollection() {
     return getDb().collection("todos");
   }
-  static async findAll() {
+  static async findAll(bookmarkId) {
     const todoCollection = this.todoCollection();
-    return await todoCollection.find().toArray();
+    return await todoCollection.aggregate([
+      {$match:{
+        bookmarkId: new ObjectId(bookmarkId)
+      }}
+    ]).toArray();
   }
 
   static async findByPk(todoId) {

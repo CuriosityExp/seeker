@@ -40,7 +40,7 @@ router.post("/bookmarks", BookmarkController.createBookmark);
 router.delete("/bookmarks", BookmarkController.deleteBookmark);
 router.put("/bookmarks", BookmarkController.updateBookmark);
 
-router.get("/todos", TodoController.getTodo);
+router.get("/todos/:BookmarkId", TodoController.getTodo);
 router.post("/todos/:BookmarkId", TodoController.createTodo);
 router.patch("/todos/:id", TodoController.updateTodo);
 router.delete("/todos/:id", TodoController.deleteTodo);

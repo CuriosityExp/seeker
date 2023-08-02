@@ -1,25 +1,21 @@
 const Todo = require("../mongo-models/todo");
 const Bookmark = require("../mongo-models/bookmark");
 const { ObjectId } = require("mongodb");
-const { Configuration, OpenAIApi } = require("openai");
-const configuration = new Configuration({
-  apiKey: "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",
-});
-const openai = new OpenAIApi(configuration);
+const openai = require('../config/openai')
 
 class TodoController {
   static async getTodo(req, res, next) {
     try {
-      const { UserId } = req.user;
-      if(!UserId){
-        res.status(401).json({message: "Invalid Token"})
+      const { BookmarkId } = req.params;
+
+      const todos = await Todo.findAll(BookmarkId);
+      if(todos.length === 0){
+        return res.status(404).json({message: "todos not found"})
       }
-      const todos = await Todo.findAll(UserId);
-      if(!todos){
-        res.status(401).json({message: "todos not found"})
-      }
+      console.log(todos)
       res.status(200).json(todos);
     } catch (error) {
+      console.log(error)
       next(error);
     }
   }
@@ -43,11 +39,9 @@ class TodoController {
       console.log(BookmarkId)
       const data = await Bookmark.findByPk(BookmarkId);
       
-      if(!data){
+      if(data.length === 0){
         res.status(404).json({message: "data not found"})
       }
-      
-      console.log(data)
       
       const prompt = `
       berikan todo list yang hanya mengembalikan array of objects tanpa tambahan text apapun selain array tersebut, tentang hal yang harus dilakukan sebelum melamar pekerjaan ${data[0].Job.jobTitle} sebanyak 10 to do list berdasarkan ${data[0].Job.jobDesc}, dengan properti
@@ -67,10 +61,10 @@ class TodoController {
         max_tokens: 3000,
       });
       
+      console.log(response, '{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{')
       const completion = response.data.choices[0].text;
-      console.log(completion);
+      console.log(completion+ "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
       let todosdata = JSON.parse(completion);
-      console.log(todosdata)
       
       todosdata = todosdata.map((el) => {
         el.completed = false
@@ -78,10 +72,10 @@ class TodoController {
         return el
       })
 
-      console.log(todosdata)
       const todos = await Todo.bulkInsert(todosdata);
       res.status(201).json({message:"Success added data"});
     } catch (error) {
+      console.log(error)
       next(error);
     }
   }
@@ -90,6 +84,9 @@ class TodoController {
     try {
       const { Id } = req.params;
       const todos = await Todo.destroyOne(Id);
+      if(!todos) {
+        res.status(404).json({message : "todo not found"});
+      }
       res.status(200).json({message : "todo has been deleted"});
     } catch (error) {
       next(error);
@@ -101,6 +98,9 @@ class TodoController {
         const { Id } = req.params;
         const { status } = req.body;
         const todos = await Todo.patch(Id, status);
+        if(!todos) {
+          res.status(404).json({message : "todo not found"});
+        }
         res.status(200).json({message : "todo has been updated"});
       } catch (error) {
         next(error);
