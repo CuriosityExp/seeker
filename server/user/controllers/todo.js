@@ -63,7 +63,7 @@ class TodoController {
       let todosdata = JSON.parse(completion);
       
       todosdata = todosdata.map((el) => {
-        el.completed = false
+        el.status = false
         el.bookmarkId = new ObjectId(BookmarkId)
         return el
       })
