@@ -12,9 +12,9 @@ class Generator {
         throw new Error("Uh oh, no profile was provided");
       }
       const prompt = `
-  from this job vacancy detail create to do list in JSON stringify format . Here is the data:
-  ${profile}
-  `;
+      from this job vacancy detail create to do list in JSON stringify format . Here is the data:
+      ${profile}
+      `;
       const response = await openai.createCompletion({
         model: "text-davinci-003",
         prompt,

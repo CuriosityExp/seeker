@@ -1,4 +1,4 @@
-const { getDb } = require("../config/config");
+const { getDb } = require("../config/mongo");
 const { ObjectId } = require("mongodb");
 
 class TodoList {
@@ -22,6 +22,29 @@ class TodoList {
       const todoCollection = this.todoCollection();
       const list = await todoCollection.insertMany(todos);
       return list;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async destroyOne(Id) {
+    try {
+      const todoCollection = this.todoCollection();
+      return await todoCollection.deleteOne({
+        _id: new ObjectId(Id),
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async patch(Id, data) {
+    try {
+      const todoCollection = this.todoCollection();
+      return await todoCollection.updateOne({
+        _id: new ObjectId(Id),
+        status: data
+      });
     } catch (error) {
       throw error;
     }
