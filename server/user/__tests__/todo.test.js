@@ -10,6 +10,18 @@ const { queryInterface } = sequelize;
 const { run, client, getDb } = require("../config/mongo");
 const { ObjectId } = require("mongodb");
 const Todo = require("../mongo-models/todo");
+// const { Configuration, OpenAIApi } = require("openai");
+// const configuration = new Configuration({
+//   apiKey: "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",
+// });
+// const openai = new OpenAIApi();
+// jest.mock('openai', () => ({
+//   Configuration: jest.fn(),
+//   OpenAIApi: jest.fn(() => ({
+//     createCompletion:jest.fn()
+//   })),
+// }));
+const openai = require('../config/openai')
 
 const mockJobs = [
   {
@@ -96,7 +108,7 @@ beforeAll(async () => {
     const res = await User.create(tester);
     const job = await Job.create({ ...mockGlintsJob, ...mockDetail });
     const bookmark = await Bookmark.create({UserId: res.id, jobId: new ObjectId(job._id), customTitle: job.jobTitle })
-    const todo = await Todo.create({  })
+    const todo = await Todo.bulkInsert([{}])
     validToken = SignToken({ id: res.id });
   } catch (error) {
     console.log(error);
@@ -109,7 +121,7 @@ beforeEach(() => {
 
 afterAll(async () => {
   try {
-    await getDb().dropDatabase("testDB")
+    // await getDb().dropDatabase("testDB")
     await client.close();
     await User.destroy({
       restartIdentity: true,
@@ -120,51 +132,55 @@ afterAll(async () => {
     console.log(error);
   }
 });
-  
 
-describe.only("TEST ENDPOINT /todos GET", () => {
-    test("200 Success GET from database todos", (done) => {
-      request(app) // ambil dari aapp
-        .get("/todos") // methood yang digunakan
+
+describe("TEST ENDPOINT /todos GET", () => {
+  test("200 Success GET from database todos", (done) => {
+    request(app) // ambil dari aapp
+    .get("/todos/64c9d1b776c3130bd3b23604") // methood yang digunakan
         .set("access_token", validToken)
         .then((res) => {
           console.log(res)
           const { body, status } = res;
           expect(status).toBe(200);
-          expect(body).toHaveProperty("message", "Success update bookmark title");
+          expect(body).toEqual(expect.any(Array));
           done();
         })
         .catch((err) => {
           done(err);
         });
-    });
-    test("401 not found GET todos by UserId should return Invalid Token", (done) => {
-      request(app)
-        .put("/todos")
-        .set("access_token", "validToken")
+      });
+      test("404 not found GET todos by BookmarkId", (done) => {
+        request(app)
+        .get("/todos/64c9d1b776c3130bd3b23609")
+        .set("access_token", validToken)
         .then((res) => {
           const { body, status } = res;
-          expect(status).toBe(401);
+          expect(status).toBe(404);
           expect(body).toHaveProperty("message", "todos not found");
           done();
         })
         .catch((err) => {
           done(err);
         });
+      });
     });
-  });
-
-  describe.only("TEST ENDPOINT /todos POST", () => {
-    test("201 Success POST to database todos", (done) => {
-      jest.spyOn(openai,"createCompletion").mockResolvedValue({data:{choices:[{text:`[
-        {"task":"go to a boot camp"},
-        {"task":"make a cv"}
-      ]`}]}});
-      request(app) // ambil dari aapp
-        .post("/todos/64c7d7bac49d772fbe20943c") // methood yang digunakan
+    
+    describe.only("TEST ENDPOINT /todos POST", () => {
+      test.only("201 Success POST to database todos", (done) => {
+        jest.spyOn(openai, 'createCompletion').mockResolvedValue({data:{choices:[{text:`[
+          {"task":"go to a boot camp"},
+          {"task":"make a cv"}
+        ]`}]}});
+        // console.log(openai, "<<<<<<<<<<<<<<<<<<<<,,")
+        // openai.createCompletion.mockResolvedValue({data:{choices:[{text:`[
+        //   {"task":"go to a boot camp"},
+        //   {"task":"make a cv"}
+        // ]`}]}} );
+        request(app) // ambil dari aapp
+        .post("/todos/64c8bbc998946a16d609df87") // methood yang digunakan
         .set("access_token", validToken)
         .then((res) => {
-          console.log(res)
           const { body, status } = res;
           expect(status).toBe(201);
           expect(body).toHaveProperty("message", "Success added data");
@@ -173,14 +189,14 @@ describe.only("TEST ENDPOINT /todos GET", () => {
         .catch((err) => {
           done(err);
         });
-    });
-    test("401 Not Found bookmark to POST todos by UserId should return Invalid Token", (done) => {
+      }, 15000);
+      test("401 Not Found bookmark to POST todos", (done) => {
         request(app)
-          .post("todos/64c7d7bac49d772fbe20943c")
+          .post("todos/64c8bbc998946a16d609df87")
           .then((res) => {
             const { body, status } = res;
-            expect(status).toBe(401);
-            expect(body).toHaveProperty("message", "Invalid Token");
+            expect(status).toBe(404);
+            expect(body).toHaveProperty("message", "bookmark not found");
             done();
           })
           .catch((err) => {
@@ -189,7 +205,7 @@ describe.only("TEST ENDPOINT /todos GET", () => {
       });
   });
 
-  describe.only("TEST ENDPOINT /todos PUT", () => {
+  describe("TEST ENDPOINT /todos PUT", () => {
     test("200 Success UPDATE status in todos", (done) => {
       request(app) // ambil dari aapp
         .put("/todos/1") // methood yang digunakan
@@ -205,13 +221,44 @@ describe.only("TEST ENDPOINT /todos GET", () => {
           done(err);
         });
     });
-    test("401 Not Found bookmark to POST todos by UserId should return Invalid Token", (done) => {
+    test("401 Not Found todo id to PUT todos should return todo not found ", (done) => {
         request(app)
-          .post("todos/64c7d7bac49d772fbe20943c")
+          .post("todos/1")
           .then((res) => {
             const { body, status } = res;
             expect(status).toBe(401);
-            expect(body).toHaveProperty("message", "Invalid Token");
+            expect(body).toHaveProperty("message", "todo not found");
+            done();
+          })
+          .catch((err) => {
+            done(err);
+          });
+      });
+  });
+
+  describe("TEST ENDPOINT /todos DELETE", () => {
+    test("200 Success DELETE todo in todos", (done) => {
+      request(app) // ambil dari aapp
+        .put("/todos/1") // methood yang digunakan
+        .set("access_token", validToken)
+        .then((res) => {
+          console.log(res)
+          const { body, status } = res;
+          expect(status).toBe(200);
+          expect(body).toHaveProperty("message", "todo has been deleted");
+          done();
+        })
+        .catch((err) => {
+          done(err);
+        });
+    });
+    test("401 Not Found todo id to PUT todos should return todo not found ", (done) => {
+        request(app)
+          .post("todos/1")
+          .then((res) => {
+            const { body, status } = res;
+            expect(status).toBe(401);
+            expect(body).toHaveProperty("message", "todo not found");
             done();
           })
           .catch((err) => {
