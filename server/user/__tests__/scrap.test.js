@@ -13,8 +13,6 @@ const openai = require("../config/openai");
 let validToken;
 let validTokenNoProfile;
 let validTokenBelumDiisi;
-const seederToken =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjkwOTU3MDQ4fQ.w-e_rsxnrONtgARGCWz8ytm-iTri5K8uXcEydOcoEVY";
 let bookmark;
 const tester = {
   username: "tester",
@@ -115,7 +113,6 @@ const mockDetail = {
     "Adobe Photoshop",
   ],
 };
-const mockErrMsg = { message: `Internal server error` };
 
 const mockKalibrrJob = {
   url: "https://www.kalibrr.com/c/finaccel/jobs/158920/sr-ios-engineer",
@@ -125,6 +122,7 @@ const mockKalibrrJob = {
   companyLocation: "South Jakarta, Indonesia",
   salary: "",
 };
+
 const mockGlintsJob = {
   url: "https://glints.com/id/opportunities/jobs/2d-animator/998ebe62-e632-410e-9474-c27377c57553?utm_referrer=explore",
   logo: "https://images.glints.com/unsafe/glints-dashboard.s3.amazonaws.com/company-logo/67770578ad593d03c6bcc7c693666db9.png",
@@ -133,6 +131,7 @@ const mockGlintsJob = {
   companyLocation: "Tanah Abang, Jakarta Pusat, DKI Jakarta, Indonesia",
   salary: "IDR7.000.000",
 };
+
 const mockKarirJob = {
   url: "https://karir.com/opportunities/1385506",
   logo: "https://karir-production.nos.jkt-1.neo.id/logos/47/8790347/N5dc6590cd2575.jpg",
@@ -179,7 +178,7 @@ beforeAll(async () => {
 
 beforeEach(() => {
   jest.restoreAllMocks();
-});
+},10000);
 
 afterAll(async () => {
   try {
@@ -193,7 +192,7 @@ afterAll(async () => {
   } catch (error) {
     console.log(error);
   }
-});
+},10000);
 
 describe("/fetchjobs manual with query and 3 job portal", () => {
   test("200 Success Fetch kalibrr should return array of object", (done) => {
@@ -348,7 +347,7 @@ describe("/fetchjobs manual with query and 3 job portal", () => {
 
 describe("TEST ENDPOINT /bookmarks POST", () => {
   test("200 Success POST Glints Job Bookmarks by UserId", (done) => {
-    Scrap.glintsDetail = jest.fn().mockResolvedValue(mockDetail);
+    jest.spyOn(Scrap,"glintsDetail").mockResolvedValue(mockDetail)
     request(app)
       .post("/bookmarks")
       .send(mockGlintsJob)

@@ -33,18 +33,9 @@ class BookmarkController {
         jobDesc: detail.jobDesc,
         minimumSkills: detail.minimumSkills,
       });
-      // console.log(jobDetail)
+      console.log(jobDetail)
       const jobId = jobDetail._id;
-      if (!UserId) {
-        throw { name: "CustomError", status: 400, message: "UserId required" };
-      }
-      if (!jobId) {
-        throw { name: "CustomError", status: 400, message: "JobId required" };
-      }
       const job = await Job.findByPk(jobId);
-      if (!job) {
-        throw { name: "CustomError", status: 404, message: "Job not found" };
-      }
       const bookmark = await Bookmark.create({
         UserId,
         jobId,
