@@ -174,11 +174,11 @@ beforeAll(async () => {
   } catch (error) {
     console.log(error);
   }
-},10000);
+}, 10000);
 
 beforeEach(() => {
   jest.restoreAllMocks();
-},10000);
+}, 10000);
 
 afterAll(async () => {
   try {
@@ -192,12 +192,12 @@ afterAll(async () => {
   } catch (error) {
     console.log(error);
   }
-},10000);
+}, 10000);
 
 describe("/fetchjobs manual with query and 3 job portal", () => {
   test("200 Success Fetch kalibrr should return array of object", (done) => {
     // Scrap.kalibrrUrl = jest.fn().mockResolvedValue(mockJobs);
-    jest.spyOn(Scrap, "kalibrrUrl").mockResolvedValue(mockJobs);
+    jest.spyOn(Scrap, "launchPuppeteer").mockResolvedValue(mockJobs);
     request(app)
       .post("/fetchjobskalibrr")
       .send({ query: "frontend" })
@@ -214,7 +214,7 @@ describe("/fetchjobs manual with query and 3 job portal", () => {
       });
   });
   test("200 Success Fetch karir should return array of object", (done) => {
-    jest.spyOn(Scrap, "karirUrl").mockResolvedValue(mockJobs);
+    jest.spyOn(Scrap, "launchPuppeteer").mockResolvedValue(mockJobs);
     request(app)
       .post("/fetchjobskarir")
       .send({ query: "frontend" })
@@ -231,7 +231,7 @@ describe("/fetchjobs manual with query and 3 job portal", () => {
       });
   });
   test("200 Success Fetch glints should return array of object", (done) => {
-    jest.spyOn(Scrap, "glintsUrl").mockResolvedValue(mockJobs);
+    jest.spyOn(Scrap, "launchPuppeteer").mockResolvedValue(mockJobs);
     request(app)
       .post("/fetchjobsglints")
       .send({ query: "frontend" })
@@ -293,7 +293,7 @@ describe("/fetchjobs manual with query and 3 job portal", () => {
       });
   });
   test("500 Error Fetch glints should return array of object", (done) => {
-    jest.spyOn(Scrap, "glintsUrl").mockRejectedValue(mockJobs);
+    jest.spyOn(Scrap, "launchPuppeteer").mockRejectedValue(mockJobs);
     request(app)
       .post("/fetchjobsglints")
       .send({ query: "frontend" })
@@ -310,7 +310,7 @@ describe("/fetchjobs manual with query and 3 job portal", () => {
       });
   });
   test("500 Error Fetch kalibrr should return array of object", (done) => {
-    jest.spyOn(Scrap, "kalibrrUrl").mockRejectedValue(mockJobs);
+    jest.spyOn(Scrap, "launchPuppeteer").mockRejectedValue(mockJobs);
     request(app)
       .post("/fetchjobskalibrr")
       .send({ query: "frontend" })
@@ -327,7 +327,7 @@ describe("/fetchjobs manual with query and 3 job portal", () => {
       });
   });
   test("500 Error Fetch karir should return array of object", (done) => {
-    jest.spyOn(Scrap, "karirUrl").mockRejectedValue(mockJobs);
+    jest.spyOn(Scrap, "launchPuppeteer").mockRejectedValue(mockJobs);
     request(app)
       .post("/fetchjobskarir")
       .send({ query: "frontend" })
@@ -347,7 +347,7 @@ describe("/fetchjobs manual with query and 3 job portal", () => {
 
 describe("TEST ENDPOINT /bookmarks POST", () => {
   test("200 Success POST Glints Job Bookmarks by UserId", (done) => {
-    jest.spyOn(Scrap,"glintsDetail").mockResolvedValue(mockDetail)
+    jest.spyOn(Scrap, "glintsDetail").mockResolvedValue(mockDetail);
     request(app)
       .post("/bookmarks")
       .send(mockGlintsJob)
