@@ -3,19 +3,18 @@ const { SignToken } = require("../helpers/jwt");
 const { User, Profile, Education, WorkExperience } = require("../models");
 const midtransClient = require("midtrans-client");
 const nodemailer = require("nodemailer");
-const openai = require('../config/openai')
+const openai = require("../config/openai");
 const ImageKit = require("imagekit");
-var MarkdownIt = require('markdown-it'),
-    md = new MarkdownIt();
+var MarkdownIt = require("markdown-it"),
+  md = new MarkdownIt();
 const pdf = require("html-pdf");
-const fs  = require("fs");
+const fs = require("fs");
 
 const imagekit = new ImageKit({
-  publicKey : "public_xGgQNRtEKGfzExm4/foBvEv/Fvg=",
-  privateKey : "private_XrOu3Mf6b8JYujUYCXGuUZeZwkw=",
-  urlEndpoint : "https://ik.imagekit.io/uzlygq8o2"
+  publicKey: "public_xGgQNRtEKGfzExm4/foBvEv/Fvg=",
+  privateKey: "private_XrOu3Mf6b8JYujUYCXGuUZeZwkw=",
+  urlEndpoint: "https://ik.imagekit.io/uzlygq8o2",
 });
-
 
 // 170,188-189,202-203,246-247,268-269,294-295,309-310,335-336,354-355,376-377,402-403,417-418,443-444,462-463
 
@@ -39,13 +38,15 @@ class UserController {
     try {
       const { username, email, password } = req.body;
 
-      if (!password) return res.status(400).json({ message: `password is required` });
+      if (!password)
+        return res.status(400).json({ message: `password is required` });
 
       if (username) {
         const user = await User.findOne({ where: { username } });
         if (!user) return res.status(400).json({ message: `Invalid User` });
         const isPassword = checkPassword(password, user.password);
-        if (!isPassword) return res.status(400).json({ message: `Invalid Password` });
+        if (!isPassword)
+          return res.status(400).json({ message: `Invalid Password` });
 
         res.status(200).json({ access_token: SignToken({ id: user.id }) });
       } else if (email) {
@@ -53,7 +54,8 @@ class UserController {
         if (!user) return res.status(400).json({ message: `Invalid User` });
 
         const isPassword = checkPassword(password, user.password);
-        if (!isPassword) return res.status(400).json({ message: `Invalid Password` });
+        if (!isPassword)
+          return res.status(400).json({ message: `Invalid Password` });
 
         res.status(200).json({ access_token: SignToken({ id: user.id }) });
       } else {
@@ -186,7 +188,7 @@ class UserController {
 
   static async deleteUser(req, res, next) {
     try {
-      const { id } = req.params;
+      const { id } = req.header;
 
       const user = await User.findByPk(+id);
       if (!user) throw { name: "NotFound" }; //
@@ -232,7 +234,16 @@ class UserController {
   static async updateProfile(req, res, next) {
     try {
       const { id } = req.params;
-      const { fullName, aboutMe, sayName, birthDate, gender, phoneNumber, domisili, photoUrl } = req.body;
+      const {
+        fullName,
+        aboutMe,
+        sayName,
+        birthDate,
+        gender,
+        phoneNumber,
+        domisili,
+        photoUrl,
+      } = req.body;
 
       const findData = await Profile.findByPk(+id);
       if (!findData) throw { name: "NotFound" };
@@ -279,7 +290,13 @@ class UserController {
   }
 
   static async createEducation(req, res, next) {
-    const { educationalLevel, College, Major, startEducation, graduatedEducation } = req.body;
+    const {
+      educationalLevel,
+      College,
+      Major,
+      startEducation,
+      graduatedEducation,
+    } = req.body;
 
     try {
       const profile = await Profile.findOne({
@@ -320,7 +337,13 @@ class UserController {
   static async updateEducation(req, res, next) {
     try {
       const { id } = req.params;
-      const { educationalLevel, College, Major, startEducation, graduatedEducation } = req.body;
+      const {
+        educationalLevel,
+        College,
+        Major,
+        startEducation,
+        graduatedEducation,
+      } = req.body;
 
       const findData = await Education.findByPk(+id);
       if (!findData) throw { name: "NotFound" };
@@ -384,7 +407,7 @@ class UserController {
   static async createWorkExperience(req, res, next) {
     try {
       const { company, position, type, startWork, stopWork } = req.body;
-      console.log(req.user.id)
+      console.log(req.user.id);
       const profile = await Profile.findOne({
         where: {
           UserId: req.user.id,
@@ -466,6 +489,15 @@ class UserController {
 
   static async CreateCV(req, res, next) {
     try {
+      const user = await User.findOne({
+        where: {
+          id: req.user.id,
+        },
+      });
+
+      if (user.token < 5) {
+        res.status(400).json({ message: "You do not have enough token" });
+      }
 
       const dataProfile = await Profile.findOne({
         where: { UserId: req.user.id },
@@ -491,54 +523,95 @@ class UserController {
 
       if (!dataEducation) throw { name: "NotFound" };
 
-      const prompt = `Generate cv markdown with this data; name:${dataProfile.fullName}, about me:${dataProfile.aboutMe},
-       gender:${dataProfile.gender}, phone number:${dataProfile.phoneNumber}, email:${dataUser.email}, experiences:${dataExperience.company},
-       positions:${dataExperience.position}, major:${dataEducation.Major}, education:${dataEducation.graduatedEducation}`;
+      const pastWork = dataExperience.map((el) => {
+        return `my work experiences, i was working at ${el.company} from years ${el.startWork} untill ${el.stopWork}, my role was ${el.position} and i was a ${el.type} worker`;
+      });
+
+      const eduBackground = dataEducation.map((el) => {
+        return `my education background, i was graduate from ${el.College} from years ${el.startEducation} untill ${el.graduatedEducation}, my major was ${el.Major} and my degree is ${el.educationalLevel}`;
+      });
+
+      console.log(pastWork, "<<<<<past work");
+      console.log(eduBackground, "<<<<<edu");
+
+      const prompt = `Please create an ATS-friendly CV in markdown template with this data. 
+      My name: name - ${dataProfile.fullName},
+      Gender - ${dataProfile.gender},
+      Phone number - ${dataProfile.phoneNumber},
+      Email - ${dataUser.email},
+      About me - ${dataProfile.aboutMe}.
+      
+      My work experiences:
+      - I have worked at ${pastWork.toString()}.
+      
+      Education background:
+      - I graduated from ${eduBackground.toString()}.
+      
+      Please add any additional information that you think is needed.
+      
+      Work Experience Description:
+      - Add a description of my work experience here.
+      
+      Major Description:
+      - Add a description about my major here.
+      
+      Skills:
+      - Add SKILL section based on the "About Me" information.
+      
+      Summary:
+      - Add a summary section based on the "About Me" information.
+      
+      Please provide the CV format so I can easily copy it. My data type was an array of objects, please make sure you read it one by one.
+      `;
       const response = await openai.createCompletion({
         model: "text-davinci-003",
         prompt,
-        max_tokens: 1000
+        max_tokens: 1000,
       });
+
+      console.log(prompt);
 
       const dataCV = response.data.choices[0].text;
 
-      let file = md.render(dataCV)
-      
-      console.log(file, '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,,')
-      let options = { format: 'A4' };
-      let html = `<div style="font-family:sans-serif; margin:10mm"> ${file} <style> h3{border-bottom: 1px solid black} </style></div>`
+      let file = md.render(dataCV);
 
-      pdf.create(html, options).toFile(`./CVGenerated${req.user.id}.pdf`, async function(err, resultpdf) {
-        if (err) return console.log(err);
-        const fileData = fs.readFileSync(resultpdf.filename)
-        console.log(resultpdf)
-         let result = await imagekit.upload({
-          file : fileData,
-          fileName: `CVGenerated${req.user.id}.pdf`
-        }) 
+      console.log(
+        file,
+        "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,,"
+      );
+      let options = { format: "A4" };
+      let html = `<div style="font-family:sans-serif; margin:10mm"> ${file} <style> h2{border-bottom: 1px solid black} </style></div>`;
 
-        await Profile.update(
-          {
-            CV: result.url
-          },
-          { where: { id : req.user.id } }
+      pdf
+        .create(html, options)
+        .toFile(
+          `./CVGenerated${req.user.id}.pdf`,
+          async function (err, resultpdf) {
+            if (err) return console.log(err);
+            const fileData = fs.readFileSync(resultpdf.filename);
+            console.log(resultpdf);
+            let result = await imagekit.upload({
+              file: fileData,
+              fileName: `CVGenerated${req.user.id}.pdf`,
+            });
+
+            await Profile.update(
+              {
+                CV: result.url,
+              },
+              { where: { id: req.user.id } }
+            );
+
+            const edit = await User.update(
+              {
+                token: user.token - 5,
+              },
+              { where: { id: req.user.id } }
+            );
+
+            res.status(200).json({ message: `Success added data` });
+          }
         );
-
-        const user = await User.findOne({
-          where: {
-            id: req.user.id,
-          },
-        });
-  
-        const edit = await User.update(
-          {
-            token : user.token - 5
-          },
-          { where: { id: req.user.id } }
-        );
-
-        res.status(200).json({ message:`Success added data`});
-      });
     } catch (err) {
       next(err);
     }
@@ -546,4 +619,3 @@ class UserController {
 }
 
 module.exports = UserController;
-
