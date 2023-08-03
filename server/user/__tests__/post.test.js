@@ -113,10 +113,9 @@ afterAll(async () => {
       truncate: true,
       cascade: true,
     });
-    await client.close();
   } catch (error) {
     console.log(error);
-  }
+  } 
 });
 
 describe("TEST ENDPOINT CREATE POST BOOKMARK", () => {
@@ -271,7 +270,7 @@ describe("TEST ENDPOINT CREATE POST BOOKMARK", () => {
         done(err);
       });
   });
-},10000);
+}, 10000);
 
 describe("TEST ENDPOINT HANDLE CLONE BOOKMARK", () => {
   test("200 Success clone Todos to bookmark", (done) => {
@@ -294,7 +293,7 @@ describe("TEST ENDPOINT HANDLE CLONE BOOKMARK", () => {
       .catch((err) => {
         done(err);
       });
-  },10000);
+  }, 10000);
   test("400 Bad Request clone Todos to bookmark", (done) => {
     request(app)
       .post("/clonetodos")
