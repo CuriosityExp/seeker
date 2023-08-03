@@ -524,6 +524,19 @@ class UserController {
           { where: { id : req.user.id } }
         );
 
+        const user = await User.findOne({
+          where: {
+            id: req.user.id,
+          },
+        });
+  
+        const edit = await User.update(
+          {
+            token : user.token - 5
+          },
+          { where: { id: req.user.id } }
+        );
+
         res.status(200).json({ message:`Success added data`});
       });
     } catch (err) {
