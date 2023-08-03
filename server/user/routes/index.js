@@ -28,6 +28,8 @@ router.get("/educations/:id", UserController.getEducationById);
 router.put("/educations/:id", UserController.updateEducation);
 router.delete("/educations/:id", UserController.deleteEducation);
 
+router.patch("/cv-generate", UserController.CreateCV);
+
 router.get("/work-experience", UserController.allWorkExperience);
 router.post("/work-experience", UserController.createWorkExperience);
 router.get("/work-experience/:id", UserController.getWorkExperienceById);

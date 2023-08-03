@@ -4,6 +4,7 @@ const { describe, test, expect } = require("@jest/globals");
 const request = require("supertest");
 const models = require("../models");
 const app = require("../app");
+const openai = require('../config/openai')
 
 async function bulkInsertUsers() {
   await User.destroy({
@@ -81,6 +82,11 @@ beforeAll(async function () {
   const response = await request(app).post("/login").send({ username: "users1", email: "users1@gmail.com", password: "123" });
   access_token = response.body.access_token;
 });
+
+beforeEach(() => {
+  jest.restoreAllMocks();
+});
+
 afterAll(async function () {
   await models.sequelize.close();
 });
@@ -631,6 +637,48 @@ describe("Users", function () {
         .set("access_token", access_token + "xxx");
       expect(response.status).toEqual(401);
       expect(response.body.message).toEqual("Invalid Token");
+    });
+  });
+});
+
+describe ("TEST ENDPOINT / PACTH", () => {
+  test("200 Success POST to database todos", (done) => {
+    jest.spyOn(openai, 'createCompletion').mockResolvedValue({data:{choices:[{text:`
+    <h2>Doni Canra Rofika</h2>
+    <p><strong>Gender:</strong> Male | <strong>Phone number:</strong> 082224034729 | <strong>Email:</strong> donycanra@gmail.com</p>
+    <h3>About Me</h3>
+    `}]}});
+    // console.log(openai, "<<<<<<<<<<<<<<<<<<<<,,")
+    // openai.createCompletion.mockResolvedValue({data:{choices:[{text:`[
+    //   {"task":"go to a boot camp"},
+    //   {"task":"make a cv"}
+    // ]`}]}} );
+    request(app) // ambil dari aapp
+    .patch("/cv-generate") // methood yang digunakan
+    .set("access_token", access_token)
+    .then((res) => {
+      const { body, status } = res;
+      expect(status).toBe(200);
+      expect(body).toHaveProperty("message", "Success added data");
+      done();
+    })
+    .catch((err) => {
+      done(err);
+    });
+  }, 20000);
+  test("500 PATCH Internal server error", (done) => {
+    jest.spyOn(Profile,"findOne").mockRejectedValue("Internal Server Error")
+    request(app)
+    .patch("/cv-generate")
+    .set("access_token", access_token)
+    .then((res) => {
+      const { body, status } = res;
+      expect(status).toBe(500);
+      expect(body).toHaveProperty("message", "Internal server error");
+      done();
+    })
+    .catch((err) => {
+      done(err);
     });
   });
 });
