@@ -5,6 +5,7 @@ const JobController = require("../controllers/job");
 const authentication = require("../middlewares/authentication");
 const PostController = require("../controllers/postController");
 const TodoController = require("../controllers/todo");
+const authorizationBookmark = require("../middlewares/authorization");
 const router = express.Router();
 
 router.post("/register", UserController.register);
@@ -39,6 +40,7 @@ router.post("/fetchjobskarir", JobController.fetchJobKarir);
 router.get("/generatejobroles", JobController.generateRoles)
 router.get("/bookmarks", BookmarkController.readBookmark);
 router.post("/bookmarks", BookmarkController.createBookmark);
+router.patch("/bookmarks",authorizationBookmark, BookmarkController.updateShareBookmark)
 router.delete("/bookmarks", BookmarkController.deleteBookmark);
 router.put("/bookmarks", BookmarkController.updateBookmark);
 
