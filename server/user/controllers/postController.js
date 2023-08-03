@@ -34,8 +34,8 @@ class PostController {
         description,
         BookmarkId: bookmarkId,
         UserId,
+        cloneCounter: 0
       });
-
       res.status(201).json(post);
     } catch (error) {
       next(error);
