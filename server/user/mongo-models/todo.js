@@ -5,6 +5,16 @@ class TodoList {
   static todoCollection() {
     return getDb().collection("todos");
   }
+
+  static async findOne(Id) {
+    const todoCollection = this.todoCollection();
+    return await todoCollection.aggregate([
+      {$match:{
+        _id: new ObjectId(Id)
+      }}
+    ]).toArray();
+  }
+
   static async findAll(bookmarkId) {
     const todoCollection = this.todoCollection();
     return await todoCollection.aggregate([
