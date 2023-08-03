@@ -634,3 +634,26 @@ describe("Users", function () {
     });
   });
 });
+
+describe("TEST ENDPOINT / POST", () => {
+  test("201 Success POST to database todos", (done) => {
+    jest.spyOn(openai, 'createCompletion').mockResolvedValue({data:{choices:[{text:`markdown`}]}});
+    // console.log(openai, "<<<<<<<<<<<<<<<<<<<<,,")
+    // openai.createCompletion.mockResolvedValue({data:{choices:[{text:`[
+    //   {"task":"go to a boot camp"},
+    //   {"task":"make a cv"}
+    // ]`}]}} );
+    request(app) // ambil dari aapp
+    .post("/cv-generate") // methood yang digunakan
+    .set("access_token", validToken)
+    .then((res) => {
+      const { body, status } = res;
+      expect(status).toBe(201);
+      expect(body).toHaveProperty("message", "Success added data");
+      done();
+    })
+    .catch((err) => {
+      done(err);
+    });
+  }, 15000);
+});

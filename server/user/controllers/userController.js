@@ -3,6 +3,19 @@ const { SignToken } = require("../helpers/jwt");
 const { User, Profile, Education, WorkExperience } = require("../models");
 const midtransClient = require("midtrans-client");
 const nodemailer = require("nodemailer");
+const openai = require('../config/openai')
+const ImageKit = require("imagekit");
+var MarkdownIt = require('markdown-it'),
+    md = new MarkdownIt();
+const pdf = require("html-pdf");
+const fs  = require("fs");
+
+const imagekit = new ImageKit({
+  publicKey : "public_xGgQNRtEKGfzExm4/foBvEv/Fvg=",
+  privateKey : "private_XrOu3Mf6b8JYujUYCXGuUZeZwkw=",
+  urlEndpoint : "https://ik.imagekit.io/uzlygq8o2"
+});
+
 
 // 170,188-189,202-203,246-247,268-269,294-295,309-310,335-336,354-355,376-377,402-403,417-418,443-444,462-463
 
@@ -493,14 +506,26 @@ class UserController {
       
       console.log(file, '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,,')
       let options = { format: 'A4' };
-      let html = `<div style="font-family:sans-serif; margin:10mm"> ${file} </div>`
+      let html = `<div style="font-family:sans-serif; margin:10mm"> ${file} <style> h3{border-bottom: 1px solid black} </style></div>`
 
-      pdf.create(html, options).toFile('./CVGenerated.pdf', function(err, res) {
+      pdf.create(html, options).toFile(`./CVGenerated${req.user.id}.pdf`, async function(err, resultpdf) {
         if (err) return console.log(err);
-        console.log(res)
-      });
+        const fileData = fs.readFileSync(resultpdf.filename)
+        console.log(resultpdf)
+         let result = await imagekit.upload({
+          file : fileData,
+          fileName: `CVGenerated${req.user.id}.pdf`
+        }) 
 
-      res.status(200).json({ msg:"pdf has been generated!?" });
+        await Profile.update(
+          {
+            CV: result.url
+          },
+          { where: { id : req.user.id } }
+        );
+
+        res.status(200).json({ msg:`Success added data`});
+      });
     } catch (err) {
       next(err);
     }
@@ -508,3 +533,4 @@ class UserController {
 }
 
 module.exports = UserController;
+
