@@ -19,12 +19,12 @@ app.use(router);
 
 app.use(errorHandler);
 
-run().then(() => {
-  app.listen(port, () => {
-    console.log(
-      `SeekerDB app listening on port ${port} -- ${new Date().toLocaleDateString()}`
-    );
-  });
-});
+// run().then(() => {
+//   app.listen(port, () => {
+//     console.log(
+//       `SeekerDB app listening on port ${port} -- ${new Date().toLocaleDateString()}`
+//     );
+//   });
+// });
 
-// module.exports = app
+module.exports = app

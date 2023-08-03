@@ -4,6 +4,7 @@ const { User, Profile } = require("../models");
 const { SignToken } = require("../helpers/jwt");
 const { run, client, getDb } = require("../config/mongo");
 const { ObjectId } = require("mongodb");
+const Post = require("../mongo-models/post");
 
 const testerPost = {
   email: "testerPost@mail.com",
@@ -117,6 +118,42 @@ afterAll(async () => {
     console.log(error);
   } 
 });
+
+describe("TEST ENDPOINT CREATE POST BOOKMARK", () => {
+  test("200 get Post Should return Object post", (done) => {
+    request(app)
+      .get("/posts")
+      .set("access_token", postToken)
+      .then((res) => {
+        console.log(res)
+        const { body, status } = res;
+        expect(status).toBe(200);
+        expect(body).toEqual(expect.any(Array));
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+  });
+  test("500 get Post Should return Object post", (done) => {
+    jest.spyOn(Post,"findAll").mockRejectedValue("Internal Server Error")
+    request(app)
+      .get("/posts")
+      .set("access_token", postToken)
+      .then((res) => {
+        console.log(res)
+        const { body, status } = res;
+        expect(status).toBe(500);
+        expect(body).toHaveProperty("message", "Internal server error");
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+  });
+}, 10000);
+
+
 
 describe("TEST ENDPOINT CREATE POST BOOKMARK", () => {
   test("201 Create Post Should return Object post", (done) => {

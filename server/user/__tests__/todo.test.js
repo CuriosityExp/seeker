@@ -117,7 +117,7 @@ beforeAll(async () => {
   } catch (error) {
     console.log(error);
   }
-}, 10000);
+}, 20000);
 
 beforeEach(() => {
   jest.restoreAllMocks();
@@ -141,7 +141,7 @@ afterAll(async () => {
 describe("TEST ENDPOINT /todos GET", () => {
   test("200 Success GET from database todos", (done) => {
     request(app) // ambil dari aapp
-    .get("/todos/64c9d1b776c3130bd3b23604") // methood yang digunakan
+    .get("/todos/64c8bbc998946a16d609df87") // methood yang digunakan
         .set("access_token", validToken)
         .then((res) => {
           console.log(res)

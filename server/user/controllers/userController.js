@@ -188,7 +188,8 @@ class UserController {
 
   static async deleteUser(req, res, next) {
     try {
-      const { id } = req.header;
+      const { id } = req.params;
+      console.log(id)
 
       const user = await User.findByPk(+id);
       if (!user) throw { name: "NotFound" }; //
@@ -489,15 +490,6 @@ class UserController {
 
   static async CreateCV(req, res, next) {
     try {
-      const user = await User.findOne({
-        where: {
-          id: req.user.id,
-        },
-      });
-
-      if (user.token < 5) {
-        res.status(400).json({ message: "You do not have enough token" });
-      }
 
       const dataProfile = await Profile.findOne({
         where: { UserId: req.user.id },
@@ -598,13 +590,6 @@ class UserController {
             await Profile.update(
               {
                 CV: result.url,
-              },
-              { where: { id: req.user.id } }
-            );
-
-            const edit = await User.update(
-              {
-                token: user.token - 5,
               },
               { where: { id: req.user.id } }
             );

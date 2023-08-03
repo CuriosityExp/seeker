@@ -209,6 +209,21 @@ describe("Users", function () {
       expect(response.status).toEqual(401);
       expect(response.body.message).toEqual("Invalid Token");
     });
+    test("500 PATCH Internal server error", (done) => {
+      jest.spyOn(User,"findAll").mockRejectedValue("Internal Server Error")
+      request(app)
+      .get("/users")
+      .set("access_token", access_token)
+      .then((res) => {
+        const { body, status } = res;
+        expect(status).toBe(500);
+        expect(body).toHaveProperty("message", "Internal server error");
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+    });
 
     // POST USER
     test("post /midtrans with req user id", async function () {
@@ -233,6 +248,21 @@ describe("Users", function () {
       const response = await request(app).post("/users/payment-midtrans").set("access_token", access_token);
       expect(response.status).toEqual(400);
       expect(response.body.message).toEqual("Token is required");
+    });
+    test("500 PATCH Internal server error", (done) => {
+      jest.spyOn(User,"findOne").mockRejectedValue("Internal Server Error")
+      request(app)
+      .post("/users/payment-midtrans")
+      .set("access_token", access_token)
+      .then((res) => {
+        const { body, status } = res;
+        expect(status).toBe(500);
+        expect(body).toHaveProperty("message", "Internal server error");
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
     });
 
     //PATCH USER
@@ -260,6 +290,21 @@ describe("Users", function () {
       expect(response.status).toEqual(400);
       expect(response.body.message).toEqual("Token is required");
     });
+    test("500 PATCH Internal server error", (done) => {
+      jest.spyOn(User,"findOne").mockRejectedValue("Internal Server Error")
+      request(app)
+      .patch("/users")
+      .set("access_token", access_token)
+      .then((res) => {
+        const { body, status } = res;
+        expect(status).toBe(500);
+        expect(body).toHaveProperty("message", "Internal server error");
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+    });
 
     //DELETE USER
     test("delete /users with id", async function () {
@@ -284,6 +329,21 @@ describe("Users", function () {
       const response = await request(app).delete("/users/1000").set("access_token", access_token);
       expect(response.status).toEqual(404);
       expect(response.body.message).toEqual("Not found");
+    });
+    test("500 PATCH Internal server error", (done) => {
+      jest.spyOn(User,"findByPk").mockRejectedValue("Internal Server Error")
+      request(app)
+      .delete("/users/1")
+      .set("access_token", access_token)
+      .then((res) => {
+        const { body, status } = res;
+        expect(status).toBe(500);
+        expect(body).toHaveProperty("message", "Internal server error");
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
     });
   });
 
@@ -378,6 +438,21 @@ describe("Users", function () {
         .set("access_token", access_token + "xxx");
       expect(response.status).toEqual(401);
       expect(response.body.message).toEqual("Invalid Token");
+    });
+    test("500 PATCH Internal server error", (done) => {
+      jest.spyOn(Profile,"findByPk").mockRejectedValue("Internal Server Error")
+      request(app)
+      .put("/people/1")
+      .set("access_token", access_token)
+      .then((res) => {
+        const { body, status } = res;
+        expect(status).toBe(500);
+        expect(body).toHaveProperty("message", "Internal server error");
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
     });
   });
 
@@ -509,6 +584,21 @@ describe("Users", function () {
       expect(response.status).toEqual(401);
       expect(response.body.message).toEqual("Invalid Token");
     });
+    test("500 PATCH Internal server error", (done) => {
+      jest.spyOn(Education,"findAll").mockRejectedValue("Internal Server Error")
+      request(app)
+      .get("/educations/1")
+      .set("access_token", access_token)
+      .then((res) => {
+        const { body, status } = res;
+        expect(status).toBe(500);
+        expect(body).toHaveProperty("message", "Internal server error");
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+    });
   });
 
   describe("work-experience test", function () {
@@ -639,6 +729,21 @@ describe("Users", function () {
       expect(response.body.message).toEqual("Invalid Token");
     });
   });
+  test("500 PATCH Internal server error", (done) => {
+    jest.spyOn(WorkExperience,"findAll").mockRejectedValue("Internal Server Error")
+    request(app)
+    .get("/work-experience/1")
+    .set("access_token", access_token)
+    .then((res) => {
+      const { body, status } = res;
+      expect(status).toBe(500);
+      expect(body).toHaveProperty("message", "Internal server error");
+      done();
+    })
+    .catch((err) => {
+      done(err);
+    });
+  });
 });
 
 describe ("TEST ENDPOINT / PACTH", () => {
@@ -665,7 +770,7 @@ describe ("TEST ENDPOINT / PACTH", () => {
     .catch((err) => {
       done(err);
     });
-  }, 20000);
+  }, 30000);
   test("500 PATCH Internal server error", (done) => {
     jest.spyOn(Profile,"findOne").mockRejectedValue("Internal Server Error")
     request(app)

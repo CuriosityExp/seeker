@@ -189,7 +189,6 @@ beforeEach(() => {
 afterAll(async () => {
   try {
     await getDb().dropDatabase("testDB");
-    await client.close();
     await User.destroy({
       restartIdentity: true,
       truncate: true,

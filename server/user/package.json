@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest --runInBand --verbose --silent --coverage --forceExit --testPathPattern --no-cache"
+    "test": "jest --runInBand --verbose --coverage --forceExit --testPathPattern --no-cache"
   },
   "keywords": [],
   "author": "",
