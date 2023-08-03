@@ -16,9 +16,7 @@ class TodoList {
 
   static async bulkInsert(todos) {
       const todoCollection = this.todoCollection();
-      console.log(todos);
       const list = await todoCollection.insertMany(todos);
-      console.log(list)
       return list;
   }
 
