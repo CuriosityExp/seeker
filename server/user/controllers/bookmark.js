@@ -33,7 +33,6 @@ class BookmarkController {
         jobDesc: detail.jobDesc,
         minimumSkills: detail.minimumSkills,
       });
-      console.log(jobDetail)
       const jobId = jobDetail._id;
       const job = await Job.findByPk(jobId);
       const bookmark = await Bookmark.create({
@@ -84,7 +83,6 @@ class BookmarkController {
       }
       res.status(200).json({ message: "Success update bookmark title" });
     } catch (error) {
-      console.log(error);
       next(error);
     }
   }

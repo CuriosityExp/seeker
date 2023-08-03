@@ -5,7 +5,6 @@ const authorizationBookmark = async (req, res, next) => {
     if (!bookmark) {
         throw {name: "CustomError", status: 404, message: "Bookmark not found"}
     }
-    req.bookmark = bookmark
     if(bookmark.UserId !== req.user.id){
         throw {name: "CustomError", status: 403, message: "You are not allowed"}
     }
