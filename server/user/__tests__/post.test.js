@@ -2,9 +2,6 @@ const app = require("../app");
 const request = require("supertest");
 const { User, Profile } = require("../models");
 const { SignToken } = require("../helpers/jwt");
-const Scrap = require("../mongo-models/scrap");
-const Job = require("../mongo-models/job");
-const Bookmark = require("../mongo-models/bookmark");
 const { run, client, getDb } = require("../config/mongo");
 const { ObjectId } = require("mongodb");
 
@@ -23,8 +20,10 @@ let cloneToken;
 
 let postBookmark = "64c8bbc998946a16d609df87";
 let cloneBookmark = "64c8bd907aefd65bb5d25e8c";
-let noTodosBookmark = "64c8d820e90dd136b6e76046";
-let alreadyPostBookmark = "64c8bc727fc263fe304b9f52";
+let noTodosBookmark = "64c8d5e6bd2948008047f872";
+
+let postIdToBeClone = "64cb550e8e5c69e30ae7daec";
+
 const mockGlintsJob = {
   url: "https://glints.com/id/opportunities/jobs/2d-animator/998ebe62-e632-410e-9474-c27377c57553?utm_referrer=explore",
   logo: "https://images.glints.com/unsafe/glints-dashboard.s3.amazonaws.com/company-logo/67770578ad593d03c6bcc7c693666db9.png",
@@ -85,27 +84,43 @@ beforeAll(async () => {
 
 afterAll(async () => {
   try {
-    getDb().collection("bookmarks").updateOne({
-        _id: new ObjectId(postBookmark)
-    },{
-        $set: {
-            isPost: false
+    getDb()
+      .collection("bookmarks")
+      .updateOne(
+        {
+          _id: new ObjectId(postBookmark),
+        },
+        {
+          $set: {
+            isPost: false,
+          },
         }
-    })
+      );
+    getDb()
+      .collection("todos")
+      .deleteMany(
+        {
+          bookmarkId: new ObjectId(cloneBookmark),
+        },
+        {
+          $set: {
+            isPost: false,
+          },
+        }
+      );
     await User.destroy({
       restartIdentity: true,
       truncate: true,
       cascade: true,
     });
+    await client.close();
   } catch (error) {
     console.log(error);
-  } finally{
-    await client.close();
   }
 });
 
 describe("TEST ENDPOINT CREATE POST BOOKMARK", () => {
-  test("200 Create Post Should return Object post", (done) => {
+  test("201 Create Post Should return Object post", (done) => {
     request(app)
       .post("/posts")
       .set("access_token", postToken)
@@ -115,9 +130,9 @@ describe("TEST ENDPOINT CREATE POST BOOKMARK", () => {
         bookmarkId: postBookmark,
       })
       .then((res) => {
-        const {body, status} = res
-        expect(status).toBe(201)
-        expect(body).toEqual(expect.any(Object))
+        const { body, status } = res;
+        expect(status).toBe(201);
+        expect(body).toEqual(expect.any(Object));
         done();
       })
       .catch((err) => {
@@ -256,5 +271,83 @@ describe("TEST ENDPOINT CREATE POST BOOKMARK", () => {
         done(err);
       });
   });
-});
+},10000);
 
+describe("TEST ENDPOINT HANDLE CLONE BOOKMARK", () => {
+  test("200 Success clone Todos to bookmark", (done) => {
+    request(app)
+      .post("/clonetodos")
+      .send({
+        postId: postIdToBeClone,
+        toBookmarkId: cloneBookmark,
+      })
+      .set("access_token", cloneToken)
+      .then((res) => {
+        const { status, body } = res;
+        expect(status).toBe(200);
+        expect(body).toHaveProperty(
+          "message",
+          "Success add cloned ToDos to Bookmark"
+        );
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+  },10000);
+  test("400 Bad Request clone Todos to bookmark", (done) => {
+    request(app)
+      .post("/clonetodos")
+      .send({
+        toBookmarkId: noTodosBookmark,
+      })
+      .set("access_token", cloneToken)
+      .then((res) => {
+        const { status, body } = res;
+        expect(status).toBe(400);
+        expect(body).toHaveProperty("message", "PostId is required");
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+  });
+  test("400 Bad Request clone Todos to bookmark", (done) => {
+    request(app)
+      .post("/clonetodos")
+      .send({
+        postId: postIdToBeClone,
+      })
+      .set("access_token", cloneToken)
+      .then((res) => {
+        const { status, body } = res;
+        expect(status).toBe(400);
+        expect(body).toHaveProperty(
+          "message",
+          "Clone to BookmarkId is required"
+        );
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+  });
+  test("404 Not Found clone Todos to bookmark", (done) => {
+    request(app)
+      .post("/clonetodos")
+      .send({
+        postId: postIdToBeClone,
+        toBookmarkId: "64c8d820e90dd136b6e7604a",
+      })
+      .set("access_token", cloneToken)
+      .then((res) => {
+        const { status, body } = res;
+        expect(status).toBe(404);
+        expect(body).toHaveProperty("message", "Bookmark not found");
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+  });
+});

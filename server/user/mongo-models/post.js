@@ -15,7 +15,7 @@ class Post {
     const postCollection = this.postCollection();
     return await postCollection
       .find({
-        postId,
+        _id: new ObjectId(postId),
       })
       .toArray();
   }
@@ -44,12 +44,14 @@ class Post {
   static async update(postId, counter) {
     try {
       const postCollection = this.postCollection();
+      console.log(postId,counter)
+      const newCounter = counter + 1
       const updatedPost = await postCollection.updateOne(
         {
           _id: new ObjectId(postId),
         },
         {
-          cloneCounter: counter + 1,
+          $set:{cloneCounter: newCounter,}
         }
       );
       return await postCollection.find({ _id: new ObjectId(postId) });

@@ -99,6 +99,7 @@ class PostController {
         };
       }
       const [post] = await Post.findByPk(postId);
+      // console.log(post)
       if (!post) {
         throw { name: "CustomError", status: 404, message: "Post not found" };
       }
@@ -111,9 +112,12 @@ class PostController {
         };
       }
       let newTodos = post.todos.map((todo) => {
-        (todo.bookmarkId = new ObjectId(toBookmarkId)), (todo.status = false);
+        todo.bookmarkId = new ObjectId(toBookmarkId) 
+        todo.status = false
+        delete todo._id
         return todo;
       });
+      // console.log(newTodos)
       await TodoList.bulkInsert(newTodos);
       const updatedPost = await Post.update(postId, post.cloneCounter);
       res.status(200).json({ message: `Success add cloned ToDos to Bookmark` });

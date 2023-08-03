@@ -44,7 +44,7 @@ router.put("/bookmarks", BookmarkController.updateBookmark);
 
 router.get("/posts", PostController.allPost);
 router.post("/posts", PostController.createPost);
-router.post("/clonetodo", PostController.handleClone);
+router.post("/clonetodos", PostController.handleClone);
 router.delete("/posts", PostController.deletePost);
 
 router.get("/todos/:BookmarkId", TodoController.getTodo);
