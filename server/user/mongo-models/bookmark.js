@@ -86,7 +86,9 @@ class Bookmark {
   static async patch(bookmarkId) {
     try {
       const bookmarkCollection = this.bookmarkCollection();
-      const bookmark = req.bookmark
+      const [bookmark] = await bookmarkCollection.find({
+        _id: new ObjectId(bookmarkId)
+      }).toArray()
       if (bookmark.isPost === true) {
         throw {
           name: "CustomError",

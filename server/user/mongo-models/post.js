@@ -20,13 +20,16 @@ class Post {
       .toArray();
   }
 
-  static async create({ title, description, BookmarkId, UserId }) {
+  static async create({ title, username, profileImg, todos, description, BookmarkId, UserId }) {
     try {
       const postCollection = this.postCollection();
       const newPost = await postCollection.insertOne({
         title,
+        username,
+        profileImg,
         description,
         BookmarkId,
+        todos,
         UserId,
         cloneCounter: 0,
       });
