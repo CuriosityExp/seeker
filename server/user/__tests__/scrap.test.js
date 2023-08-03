@@ -14,6 +14,7 @@ let validToken;
 let validTokenNoProfile;
 let validTokenBelumDiisi;
 let bookmark;
+let bookmarkPatch;
 const tester = {
   username: "tester",
   email: "tester@mail.com",
@@ -164,6 +165,11 @@ beforeAll(async () => {
     );
     const job = await Job.create({ ...mockGlintsJob, ...mockDetail });
     bookmark = await Bookmark.create({
+      UserId: res.id,
+      jobId: new ObjectId(job._id),
+      customTitle: job.jobTitle,
+    });
+    bookmarkPatch = await Bookmark.create({
       UserId: res.id,
       jobId: new ObjectId(job._id),
       customTitle: job.jobTitle,
@@ -630,6 +636,86 @@ describe("TEST ENDPOINT /bookmarks GET", () => {
       });
   });
 });
+
+describe("TEST ENDPOINT /bookmarks PATCH", ()=>{
+  test("200 Success PATCH Bookmarks by BookmarkId",(done)=>{
+    request(app)
+      .patch("/bookmarks")
+      .set("access_token", validToken)
+      .send({ bookmarkId: bookmarkPatch._id })
+      .then((res) => {
+        const { body, status } = res;
+        expect(status).toBe(200);
+        expect(body).toEqual(expect.any(Object));
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+  })
+  test("401 Unauthorized PATCH Bookmarks by BookmarkId should return Invalid Token",(done)=>{
+    request(app)
+      .patch("/bookmarks")
+      .send({ bookmarkId: "64c8bbc998946a16d609df87" })
+      .then((res) => {
+        const { body, status } = res;
+        expect(status).toBe(401)
+        expect(body).toHaveProperty("message", "Invalid Token");
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+  })
+  test("403 Forbidden PATCH Bookmarks by BookmarkId should return You are not allowed", (done) => {
+    request(app)
+      .patch("/bookmarks")
+      .send({ bookmarkId: "64c8d923c8500cd612427c35" })
+      .set("access_token", validToken)
+      .then((res) => {
+        const { body, status } = res;
+        expect(status).toBe(403);
+        expect(body).toHaveProperty("message", "You are not allowed");
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+  });
+  test("404 Forbidden PATCH Bookmarks by BookmarkId should return Bookmark not found", (done) => {
+    request(app)
+      .patch("/bookmarks")
+      .send({ bookmarkId: "64c8d923c8500cd612427c3a" })
+      .set("access_token", validToken)
+      .then((res) => {
+        const { body, status } = res;
+        expect(status).toBe(404);
+        expect(body).toHaveProperty("message", "Bookmark not found");
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+  });
+  test("405 Method Not Allowed PATCH Bookmarks by BookmarkId should return Bookmark already been posted before", (done) => {
+    request(app)
+      .patch("/bookmarks")
+      .send({ bookmarkId: bookmarkPatch._id })
+      .set("access_token", validToken)
+      .then((res) => {
+        const { body, status } = res;
+        expect(status).toBe(405);
+        expect(body).toHaveProperty(
+          "message",
+          "Bookmark already been posted before"
+        );
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+  });
+})
 
 describe("TEST ENDPOINT /generatejobroles", () => {
   test("200 Success generatejobroles should return Object with key roles", (done) => {

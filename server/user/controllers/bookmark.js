@@ -42,7 +42,6 @@ class BookmarkController {
       });
       res.status(201).json(bookmark);
     } catch (error) {
-      console.log(error);
       next(error);
     }
   }
