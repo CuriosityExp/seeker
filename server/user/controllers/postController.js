@@ -17,9 +17,17 @@ class PostController {
       const { UserId } = req.user.id;
 
       const { title, description, bookmarkId } = req.body;
-
+      if (!title) {
+        throw {name: "CustomError", status: 400, message: "Post Title is required"}
+      }
+      if (!description) {
+        throw {name: "CustomError", status: 400, message: "Post description is required"}
+      }
+      if (!bookmarkId) {
+        throw {name: "CustomError", status: 400, message: "BookmarkId is required"}
+      }
       const bookmark = await Bookmark.findByPk(bookmarkId);
-      if (!bookmark) throw { name: "NotFound" };
+      if (!bookmark) throw { name: "CustomError", status: 404, message: "Bookmark not found" };
 
       const post = await Post.create({
         title,
@@ -30,7 +38,6 @@ class PostController {
 
       res.status(201).json(post);
     } catch (error) {
-      console.log(error);
       next(error);
     }
   }
