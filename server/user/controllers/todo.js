@@ -118,7 +118,6 @@ class TodoController {
           send = true
         }
 
-        console.log(status, "/////////////////////////////////////////////")
         const todos = await Todo.patch(id ,send);
         console.log(todos)
         if(todos.matchedCount === 0) {
