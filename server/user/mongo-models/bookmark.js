@@ -86,6 +86,14 @@ class Bookmark {
   static async patch(bookmarkId) {
     try {
       const bookmarkCollection = this.bookmarkCollection();
+      const bookmark = req.bookmark
+      if (bookmark.isPost === true) {
+        throw {
+          name: "CustomError",
+          status: 405,
+          message: "Bookmark already been posted before",
+        };
+      }
       await bookmarkCollection.updateOne(
         {
           _id: new ObjectId(bookmarkId),
