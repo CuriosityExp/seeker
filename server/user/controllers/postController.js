@@ -1,5 +1,7 @@
 const Post = require("../mongo-models/post");
 const Bookmark = require("../mongo-models/bookmark");
+const TodoList = require("../mongo-models/todo");
+const { ObjectId } = require("mongodb");
 
 class PostController {
   static async allPost(req, res, next) {
@@ -34,11 +36,40 @@ class PostController {
         description,
         BookmarkId: bookmarkId,
         UserId,
-        cloneCounter: 0
       });
       res.status(201).json(post);
     } catch (error) {
       next(error);
+    }
+  }
+
+  static async handleClone(req,res,next){
+    try {
+      const {postId, postedBookmarkId, toBookmarkId} = req.body
+      if (!postId) {
+        throw {name: "CustomError", status: 400, message: "PostId is required"}
+      }
+      if (!postedBookmarkId) {
+        throw {name: "CustomError", status: 400, message: "Post BookmarkId is required"}
+      }
+      if (!toBookmarkId) {
+        throw {name: "CustomError", status: 400, message: "Clone to BookmarkId is required"}
+      }
+      const [post] = await Post.findByPk(postId)
+      if (!post) {
+        throw {name: "CustomError", status: 404, message: "Post not found"}
+      }
+      const todos = await TodoList.findAll(postedBookmarkId)
+      let newTodos = todos.map(todo => {
+        todo.bookmarkId = new ObjectId(toBookmarkId),
+        todo.status = false
+        return todo
+      })
+      await TodoList.bulkInsert(newTodos)
+      const updatedPost = await Post.update(postId,post.cloneCounter)
+      res.status(200).json({message: `Success add cloned ToDos to Bookmark`})
+    } catch (error) {
+      next(error)
     }
   }
 
