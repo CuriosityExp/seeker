@@ -1,5 +1,6 @@
 const Todo = require("../mongo-models/todo");
 const Bookmark = require("../mongo-models/bookmark");
+const { User, Profile, Education, WorkExperience } = require("../models");
 const { ObjectId } = require("mongodb");
 const openai = require('../config/openai')
 
@@ -68,6 +69,19 @@ class TodoController {
         return el
       })
 
+      const user = await User.findOne({
+        where: {
+          id: req.user.id,
+        },
+      });
+
+      const edit = await User.update(
+        {
+          token : user.token - 1
+        },
+        { where: { id: req.user.id } }
+      );
+
       const todos = await Todo.bulkInsert(todosdata);
       res.status(201).json({message:"Success added data", todosdata});
     } catch (error) {
@@ -94,9 +108,17 @@ class TodoController {
     static async updateTodo(req, res, next) {
       try {
         const { id } = req.params;
-        const { status } = req.body;
-        console.log(status, "/////////////////////////////////////////////")
-        const todos = await Todo.patch(id, status);
+        
+        const get = Todo.findOne(id)
+        let send;
+
+        if(get.status === true){
+          send = false
+        } else {
+          send = true
+        }
+
+        const todos = await Todo.patch(id ,send);
         console.log(todos)
         if(todos.matchedCount === 0) {
           res.status(404).json({message : "todo not found"});
