@@ -479,13 +479,13 @@ class UserController {
 
       if (!dataUser) throw { name: "NotFound" };
 
-      const dataExperience = await WorkExperience.findOne({
+      const dataExperience = await WorkExperience.findAll({
         where: { ProfileId: dataProfile.id },
       });
 
       if (!dataExperience) throw { name: "NotFound" };
 
-      const dataEducation = await Education.findOne({
+      const dataEducation = await Education.findAll({
         where: { ProfileId: dataProfile.id },
       });
 
@@ -524,7 +524,7 @@ class UserController {
           { where: { id : req.user.id } }
         );
 
-        res.status(200).json({ msg:`Success added data`});
+        res.status(200).json({ message:`Success added data`});
       });
     } catch (err) {
       next(err);
