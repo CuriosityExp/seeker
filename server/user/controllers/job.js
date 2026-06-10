@@ -94,13 +94,13 @@ class JobController {
       ]
       `;
       console.log(prompt, "<<<<");
-      const response = await openai.createCompletion({
-        model: "text-davinci-003",
+      const response = await openai.completions.create({
+        model: "gpt-3.5-turbo-instruct",
         prompt,
         max_tokens: 1000,
       });
       console.log(response)
-      const completion = response.data.choices[0].text;
+      const completion = response.choices[0].text;
       console.log(completion);
       const roles = JSON.parse(completion);
       res.status(200).json({ message: "success", roles });

@@ -7,7 +7,7 @@ const openai = require("../config/openai");
 const ImageKit = require("imagekit");
 var MarkdownIt = require("markdown-it"),
   md = new MarkdownIt();
-const pdf = require("html-pdf");
+const puppeteer = require("puppeteer");
 const fs = require("fs");
 
 const imagekit = new ImageKit({
@@ -555,15 +555,15 @@ class UserController {
       
       Please provide the CV format so I can easily copy it. My data type was an array of objects, please make sure you read it one by one.
       `;
-      const response = await openai.createCompletion({
-        model: "text-davinci-003",
+      const response = await openai.completions.create({
+        model: "gpt-3.5-turbo-instruct",
         prompt,
         max_tokens: 1000,
       });
 
       console.log(prompt);
 
-      const dataCV = response.data.choices[0].text;
+      const dataCV = response.choices[0].text;
 
       let file = md.render(dataCV);
 
@@ -571,32 +571,29 @@ class UserController {
         file,
         "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,,"
       );
-      let options = { format: "A4" };
       let html = `<div style="font-family:sans-serif; margin:10mm"> ${file} <style> h2{border-bottom: 1px solid black} </style></div>`;
 
-      pdf
-        .create(html, options)
-        .toFile(
-          `./CVGenerated${req.user.id}.pdf`,
-          async function (err, resultpdf) {
-            if (err) return console.log(err);
-            const fileData = fs.readFileSync(resultpdf.filename);
-            console.log(resultpdf);
-            let result = await imagekit.upload({
-              file: fileData,
-              fileName: `CVGenerated${req.user.id}.pdf`,
-            });
+      const browser = await puppeteer.launch({ headless: "new" });
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: "networkidle0" });
+      const pdfPath = `./CVGenerated${req.user.id}.pdf`;
+      await page.pdf({ path: pdfPath, format: "A4" });
+      await browser.close();
 
-            await Profile.update(
-              {
-                CV: result.url,
-              },
-              { where: { id: req.user.id } }
-            );
+      const fileData = fs.readFileSync(pdfPath);
+      let result = await imagekit.upload({
+        file: fileData,
+        fileName: `CVGenerated${req.user.id}.pdf`,
+      });
 
-            res.status(200).json({ message: `Success added data` });
-          }
-        );
+      fs.unlinkSync(pdfPath);
+
+      await Profile.update(
+        { CV: result.url },
+        { where: { id: req.user.id } }
+      );
+
+      res.status(200).json({ message: `Success added data` });
     } catch (err) {
       next(err);
     }

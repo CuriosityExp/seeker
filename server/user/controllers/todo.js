@@ -52,14 +52,14 @@ class TodoController {
 [ { "task": "todo list 1"}, { "task": "todo list 2} ]
       `;
       console.log(prompt, "<<<")
-      const response = await openai.createCompletion({
-        model: "text-davinci-003",
+      const response = await openai.completions.create({
+        model: "gpt-3.5-turbo-instruct",
         prompt,
         max_tokens: 3000,
       });
       
       console.log(response, '{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{')
-      const completion = response.data.choices[0].text;
+      const completion = response.choices[0].text;
       console.log(completion+ "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
       let todosdata = JSON.parse(completion);
       
